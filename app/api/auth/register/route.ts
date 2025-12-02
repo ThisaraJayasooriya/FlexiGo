@@ -27,7 +27,8 @@ export async function POST(req: Request) {
       email,
       password,
       options: {
-        data: { role } // save role in auth.user_metadata
+        data: { role }, // save role in auth.user_metadata
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
       },
     });
 
