@@ -11,7 +11,8 @@ export default function RegisterPage() {
 
   const handleSuccess = (res: any) => {
     // Backend on register may send user object or session depending on your implementation.
-    // If email confirmation is enabled, notify user to check email and redirect to login page.
+    // After registration, redirect to login page
+    // User will need to login and then complete their profile
     router.push("/login");
   };
 

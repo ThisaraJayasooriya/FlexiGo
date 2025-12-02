@@ -1,26 +1,59 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
 import AuthForm from "@/app/components/AuthForm";
+import Toast from "@/app/components/ui/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
 
-  const handleLoginSuccess = (json: any) => {
-    // Example: backend returns { session: { access_token, refresh_token, user } }
-    // Save token (for now) and redirect to dashboard.
+  const handleLoginSuccess = async (json: any) => {
+    // Backend returns { session: { access_token, refresh_token, user } }
     if (json?.session?.access_token) {
-      // Minimal approach — store in localStorage (later use httpOnly cookies)
-      localStorage.setItem("access_token", json.session.access_token);
-      router.push("/dashboard");
+      const token = json.session.access_token;
+      localStorage.setItem("access_token", token);
+
+      // Check if user needs to complete profile
+      try {
+        const checkRes = await fetch("/api/check", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (checkRes.ok) {
+          const userData = await checkRes.json();
+          
+          // If first login not complete, redirect to profile creation
+          if (!userData.first_login_complete) {
+            if (userData.role === "worker") {
+              router.push("/profile/worker/create");
+            } else if (userData.role === "business") {
+              router.push("/profile/business/create");
+            } else {
+              router.push("/dashboard");
+            }
+          } else {
+            router.push("/dashboard");
+          }
+        } else {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.error("Profile check error:", error);
+        router.push("/dashboard");
+      }
     } else {
-      // some setups return user directly — adjust accordingly
       router.push("/dashboard");
     }
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-white to-[#D3D9D2] flex items-center justify-center p-4 sm:p-6">
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      
       <div className="max-w-md w-full">
         {/* Back Button */}
         <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-[#124E66] mb-6 transition-colors">
