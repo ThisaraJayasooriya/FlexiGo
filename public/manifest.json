@@ -1,0 +1,9 @@
+{
+  "name": "FlexiGo",
+  "short_name": "FlexiGo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#124E66",
+  "icons": []
+}
