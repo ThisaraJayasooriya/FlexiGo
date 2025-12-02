@@ -12,12 +12,16 @@ export default function Dashboard() {
       router.replace("/login");
       return;
     }
+    // Set cookie for middleware
+    document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
     // Optionally call /api/profile/check to find user's role/first_login status
     setLoading(false);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
+    // Clear cookie
+    document.cookie = "access_token=; path=/; max-age=0";
     router.push("/");
   };
 

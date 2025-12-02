@@ -14,6 +14,9 @@ export default function LoginPage() {
     if (json?.session?.access_token) {
       const token = json.session.access_token;
       localStorage.setItem("access_token", token);
+      
+      // Set cookie for middleware
+      document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
 
       // Check if user needs to complete profile
       try {

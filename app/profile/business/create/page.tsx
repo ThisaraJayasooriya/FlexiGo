@@ -38,9 +38,14 @@ export default function CreateBusinessProfile() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to create profile");
 
+      // Update cookie with fresh token
+      if (token) {
+        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
+      }
+
       setToast({
         type: "success",
-        message: "Business profile created successfully!",
+        message: "Profile created successfully!",
       });
 
       setTimeout(() => {
