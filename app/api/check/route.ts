@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import type { BusinessProfile } from "@/types/business";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,10 +12,8 @@ const supabaseAdmin = createClient(
   }
 );
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   try {
-    const body: Omit<BusinessProfile, "user_id"> = await req.json();
-
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
 
@@ -25,25 +22,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user_id = userData.user.id;
-
-    // Upsert business profile using admin client to bypass RLS
     const { data, error } = await supabaseAdmin
-      .from("business_profiles")
-      .upsert({ user_id, ...body }, { onConflict: "user_id" })
-      .select(); // returns array
+      .from("user_roles")
+      .select("role, first_login_complete")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!data) return NextResponse.json({ error: "User role not found" }, { status: 404 });
 
-    const profile = data?.[0] || null;
-
-    // Update first_login_complete using admin client
-    await supabaseAdmin
-      .from("user_roles")
-      .update({ first_login_complete: true })
-      .eq("user_id", user_id);
-
-    return NextResponse.json({ message: "Business profile completed", profile });
+    return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
