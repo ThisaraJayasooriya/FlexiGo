@@ -118,7 +118,10 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group">
+            <button 
+              onClick={() => router.push("/jobs/create")}
+              className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group"
+            >
               <div className="flex items-center justify-center w-10 h-10 bg-[#124E66]/10 rounded-lg mb-3 group-hover:bg-[#124E66] transition-colors">
                 <svg className="w-6 h-6 text-[#124E66] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
