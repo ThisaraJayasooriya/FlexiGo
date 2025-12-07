@@ -73,7 +73,10 @@ export default function Dashboard() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+          <button 
+            onClick={() => router.push("/jobs/business")}
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow text-left"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Jobs</p>
@@ -85,7 +88,7 @@ export default function Dashboard() {
                 </svg>
               </div>
             </div>
-          </div>
+          </button>
           <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
