@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -14,8 +15,17 @@ export default function Dashboard() {
     }
     // Set cookie for middleware
     document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
-    // Optionally call /api/profile/check to find user's role/first_login status
-    setLoading(false);
+    
+    // Fetch user role
+    fetch("/api/check", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUserRole(data.role);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const handleLogout = () => {
@@ -74,12 +84,12 @@ export default function Dashboard() {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
           <button 
-            onClick={() => router.push("/jobs/business")}
+            onClick={() => router.push(userRole === "worker" ? "/jobs/worker" : "/jobs/business")}
             className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow text-left"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Jobs</p>
+                <p className="text-sm text-gray-600 mb-1">{userRole === "worker" ? "Available Jobs" : "My Jobs"}</p>
                 <p className="text-3xl font-bold text-gray-900">0</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -121,18 +131,33 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button 
-              onClick={() => router.push("/jobs/create")}
-              className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group"
-            >
-              <div className="flex items-center justify-center w-10 h-10 bg-[#124E66]/10 rounded-lg mb-3 group-hover:bg-[#124E66] transition-colors">
-                <svg className="w-6 h-6 text-[#124E66] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <div className="font-semibold text-gray-900 mb-1">Create New Job</div>
-              <div className="text-sm text-gray-600">Post a new opportunity</div>
-            </button>
+            {userRole === "business" ? (
+              <button 
+                onClick={() => router.push("/jobs/create")}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group"
+              >
+                <div className="flex items-center justify-center w-10 h-10 bg-[#124E66]/10 rounded-lg mb-3 group-hover:bg-[#124E66] transition-colors">
+                  <svg className="w-6 h-6 text-[#124E66] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div className="font-semibold text-gray-900 mb-1">Create New Job</div>
+                <div className="text-sm text-gray-600">Post a new opportunity</div>
+              </button>
+            ) : (
+              <button 
+                onClick={() => router.push("/jobs/worker")}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group"
+              >
+                <div className="flex items-center justify-center w-10 h-10 bg-[#124E66]/10 rounded-lg mb-3 group-hover:bg-[#124E66] transition-colors">
+                  <svg className="w-6 h-6 text-[#124E66] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <div className="font-semibold text-gray-900 mb-1">Browse Jobs</div>
+                <div className="text-sm text-gray-600">Find opportunities</div>
+              </button>
+            )}
             <button className="p-4 rounded-xl border-2 border-gray-200 hover:border-[#124E66] hover:bg-[#124E66]/5 transition-all text-left group">
               <div className="flex items-center justify-center w-10 h-10 bg-[#124E66]/10 rounded-lg mb-3 group-hover:bg-[#124E66] transition-colors">
                 <svg className="w-6 h-6 text-[#124E66] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
