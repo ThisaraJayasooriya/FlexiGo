@@ -11,9 +11,11 @@ const supabaseAdmin = createClient(
 
 export async function GET() {
   try {
+    // Only show open jobs to workers
     const { data, error } = await supabaseAdmin
       .from("jobs")
       .select("*")
+      .eq("status", "open")
       .order("created_at", { ascending: false });
 
     if (error)
