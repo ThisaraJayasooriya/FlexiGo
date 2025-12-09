@@ -46,7 +46,8 @@ export async function POST(req: Request) {
       venue: parsed.data.venue,
       pay_rate: parsed.data.payRate,
       required_skills: parsed.data.requiredSkills || [],
-      number_of_workers: parsed.data.workerCount
+      number_of_workers: parsed.data.workerCount,
+      status: "open" // Default status
     });
 
     if (error)
