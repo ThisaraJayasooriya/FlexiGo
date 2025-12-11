@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid payload", details: parsed.error.format() }, { status: 400 });
     }
-    const { job_id } = parsed.data;
+    const { job_id, } = parsed.data;
 
     // get user from token
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -46,7 +46,8 @@ export async function POST(req: Request) {
     // Insert application — unique constraint on (job_id, worker_id) will block duplicates
     const { error: insertErr } = await supabaseAdmin.from("applications").insert({
       job_id,
-      worker_id
+      worker_id,
+      status: "pending"
     });
 
     if (insertErr) {
