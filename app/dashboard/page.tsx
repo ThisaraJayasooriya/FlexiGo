@@ -52,8 +52,8 @@ export default function Dashboard() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#124E66] flex items-center justify-center">
-              <span className="text-xl font-bold text-white">F</span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden">
+              <img src="/icons/flexigo_logo.jpg" alt="FlexiGo Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">FlexiGo</h1>
           </div>

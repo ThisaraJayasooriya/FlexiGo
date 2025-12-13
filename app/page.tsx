@@ -6,8 +6,8 @@ export default function Home() {
       <div className="max-w-md w-full">
         {/* Logo & Branding */}
         <div className="text-center mb-8 sm:mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#124E66] mb-4 shadow-lg">
-            <span className="text-3xl sm:text-4xl font-bold text-white">F</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 mb-4">
+            <img src="/icons/flexigo_logo.jpg" alt="FlexiGo Logo" className="w-full h-full object-contain rounded-2xl shadow-lg" />
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#124E66] mb-3">
             FlexiGo
