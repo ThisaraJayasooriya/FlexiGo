@@ -69,13 +69,13 @@ export default function ForgotPasswordPage() {
           {!emailSent ? (
             <>
               {/* Header */}
-              <div className="mb-8">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-4 shadow-lg">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-2 tracking-tight">Forgot Password?</h2>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Forgot Password?</h2>
                 <p className="text-sm sm:text-base text-gray-600 font-medium">
                   No worries! Enter your email and we'll send you reset instructions.
                 </p>
