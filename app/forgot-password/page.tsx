@@ -46,31 +46,37 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-white to-[#D3D9D2] flex items-center justify-center p-4 sm:p-6">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#3F72AF]/10 rounded-full blur-3xl"></div>
+      </div>
+
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full relative z-10">
         {/* Back Button */}
-        <Link href="/login" className="inline-flex items-center text-sm text-gray-600 hover:text-[#124E66] mb-6 transition-colors">
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <Link href="/login" className="inline-flex items-center text-sm font-semibold text-[#112D4E] hover:text-[#3F72AF] mb-6 transition-all duration-200 hover:gap-2 gap-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
           Back to login
         </Link>
 
         {/* Main Card */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-4xl shadow-2xl border border-white/20">
           {!emailSent ? (
             <>
               {/* Header */}
-              <div className="mb-6 sm:mb-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#124E66] mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h2>
-                <p className="text-sm sm:text-base text-gray-600">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Forgot Password?</h2>
+                <p className="text-sm sm:text-base text-gray-600 font-medium">
                   No worries! Enter your email and we'll send you reset instructions.
                 </p>
               </div>
@@ -78,9 +84,9 @@ export default function ForgotPasswordPage() {
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <label className="flex items-center gap-2 text-sm font-bold text-[#112D4E] mb-2">
+                    <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     Email Address
                   </label>
@@ -118,8 +124,8 @@ export default function ForgotPasswordPage() {
 
               {/* Help Link */}
               <div className="mt-6 text-center">
-                <Link href="/login" className="text-sm text-gray-600">
-                  Remember your password? <span className="text-[#124E66] font-medium hover:underline">Sign in</span>
+                <Link href="/login" className="text-sm text-gray-600 font-medium">
+                  Remember your password? <span className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">Sign in</span>
                 </Link>
               </div>
             </>
@@ -127,20 +133,20 @@ export default function ForgotPasswordPage() {
             <>
               {/* Success State */}
               <div className="text-center py-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-green-100 to-green-200 mb-4 shadow-lg">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Check Your Email</h3>
-                <p className="text-gray-600 mb-6">
-                  We've sent password reset instructions to <span className="font-semibold text-gray-900">{email}</span>
+                <h3 className="text-2xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Check Your Email</h3>
+                <p className="text-gray-600 mb-6 font-medium">
+                  We've sent password reset instructions to <span className="font-bold text-[#3F72AF]">{email}</span>
                 </p>
                 
                 {/* Info Box */}
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6 text-left">
+                <div className="bg-linear-to-br from-[#DBE2EF]/50 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-5 mb-6 text-left shadow-lg">
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
@@ -160,13 +166,13 @@ export default function ForgotPasswordPage() {
                 <div className="space-y-3">
                   <button
                     onClick={() => setEmailSent(false)}
-                    className="w-full text-sm text-[#124E66] font-medium hover:underline"
+                    className="w-full text-sm text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors"
                   >
                     Use a different email
                   </button>
                   <Link
                     href="/login"
-                    className="block w-full rounded-xl px-6 py-3 bg-[#124E66] text-white text-sm font-semibold hover:bg-[#0d3a4d] transition-colors"
+                    className="block w-full rounded-2xl px-6 py-4 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm font-bold hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Back to Login
                   </Link>
@@ -177,7 +183,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
+        <p className="text-center text-xs text-gray-600 font-semibold mt-6">
           Having trouble? Contact our support team
         </p>
       </div>

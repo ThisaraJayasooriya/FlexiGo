@@ -96,21 +96,27 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-white to-[#D3D9D2] flex items-center justify-center p-4 sm:p-6">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#3F72AF]/10 rounded-full blur-3xl"></div>
+      </div>
+
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full relative z-10">
         {/* Main Card */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-4xl shadow-2xl border border-white/20">
           {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#124E66] mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Reset Your Password</h2>
-            <p className="text-sm sm:text-base text-gray-600">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Reset Your Password</h2>
+            <p className="text-sm sm:text-base text-gray-600 font-medium">
               Enter your new password below
             </p>
           </div>
@@ -119,9 +125,9 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* New Password */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <label className="flex items-center gap-2 text-sm font-bold text-[#112D4E] mb-2">
+                <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
                 New Password
               </label>
@@ -140,9 +146,9 @@ export default function ResetPasswordPage() {
 
             {/* Confirm Password */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <label className="flex items-center gap-2 text-sm font-bold text-[#112D4E] mb-2">
+                <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Confirm Password
               </label>
@@ -161,12 +167,12 @@ export default function ResetPasswordPage() {
 
             {/* Password Strength Indicator */}
             {password.length > 0 && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="bg-linear-to-br from-[#DBE2EF]/30 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-4 shadow-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-xs font-medium text-gray-700">Password Requirements</span>
+                  <span className="text-xs font-bold text-[#112D4E]">Password Requirements</span>
                 </div>
                 <div className="space-y-1">
                   <div className={`flex items-center gap-2 text-xs ${password.length >= 6 ? 'text-green-600' : 'text-gray-500'}`}>
@@ -222,15 +228,15 @@ export default function ResetPasswordPage() {
 
           {/* Help Link */}
           <div className="mt-6 text-center">
-            <Link href="/forgot-password" className="text-sm text-gray-600">
-              Didn't receive the email? <span className="text-[#124E66] font-medium hover:underline">Resend</span>
+            <Link href="/forgot-password" className="text-sm text-gray-600 font-medium">
+              Didn't receive the email? <span className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">Resend</span>
             </Link>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          <Link href="/login" className="text-[#124E66] hover:underline">
+        <p className="text-center text-xs text-gray-600 font-semibold mt-6">
+          <Link href="/login" className="text-[#3F72AF] hover:text-[#112D4E] transition-colors">
             Back to Login
           </Link>
         </p>

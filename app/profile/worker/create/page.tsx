@@ -71,7 +71,7 @@ export default function CreateWorkerProfile() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-white to-[#D3D9D2] flex items-center justify-center p-4 sm:p-6">
+    <main className="min-h-screen bg-linear-to-br from-[#F8F9FA] via-white to-[#D3D9D2] flex items-center justify-center p-4 sm:p-6">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div className="max-w-2xl w-full">
