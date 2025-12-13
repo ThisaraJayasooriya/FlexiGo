@@ -34,30 +34,44 @@ export default function RegisterPage() {
         </Link>
 
         {/* Main Card */}
-        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-[2rem] shadow-2xl border border-white/20">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-4 shadow-lg ring-2 ring-white/50">
+        <div className="bg-white/90 backdrop-blur-xl p-8 sm:p-12 rounded-[2rem] shadow-2xl border border-white/20">
+          {/* Header - Centered */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg ring-2 ring-white/50">
               <img src="/icons/flexigo_logo.jpg" alt="FlexiGo" className="w-full h-full object-cover rounded-2xl" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-2 tracking-tight">Join FlexiGo</h2>
-            <p className="text-sm sm:text-base text-gray-600 font-medium">Create your account and get started</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Join FlexiGo</h2>
+            <p className="text-sm sm:text-base text-gray-600 font-medium">Create your account to get started</p>
           </div>
 
-          {/* Role Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-[#112D4E] mb-3 tracking-wide">I am a...</label>
-            <AuthRolePicker value={role} onChange={setRole} />
+          {/* Role Selection - Compact Design */}
+          <div className="mb-8">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">Select Account Type</label>
+            <div className="flex justify-center">
+              <AuthRolePicker value={role} onChange={setRole} />
+            </div>
           </div>
 
           {/* Form */}
-          <AuthForm mode="register" role={role} onSuccess={handleSuccess} />
+          <div className="space-y-6">
+            <AuthForm mode="register" role={role} onSuccess={handleSuccess} />
+          </div>
 
-          {/* Links */}
-          <div className="mt-6 text-center text-sm">
-            <Link href="/login" className="text-gray-600 font-medium">
-              Already have an account? <span className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">Sign in</span>
-            </Link>
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+          </div>
+
+          {/* Links - Centered */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-medium">
+              Already have an account?{" "}
+              <Link href="/login" className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
 
