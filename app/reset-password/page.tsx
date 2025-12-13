@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
@@ -107,10 +107,10 @@ export default function ResetPasswordPage() {
       
       <div className="max-w-md w-full relative z-10">
         {/* Main Card */}
-        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-[2rem] shadow-2xl border border-white/20">
+        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-4xl shadow-2xl border border-white/20">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -167,7 +167,7 @@ export default function ResetPasswordPage() {
 
             {/* Password Strength Indicator */}
             {password.length > 0 && (
-              <div className="bg-gradient-to-br from-[#DBE2EF]/30 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-4 shadow-lg">
+              <div className="bg-linear-to-br from-[#DBE2EF]/30 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-4 shadow-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

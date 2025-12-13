@@ -42,7 +42,7 @@ export default function BottomNav({ items, activeTab, onTabChange }: BottomNavPr
                   onClick={() => handleTabClick(item)}
                   className="flex flex-col items-center gap-1 -mt-6"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-[#3F72AF] to-[#112D4E] flex items-center justify-center shadow-xl hover:shadow-2xl transition-all active:scale-95">
+                  <div className="w-14 h-14 rounded-2xl bg-linear-to-r from-[#3F72AF] to-[#112D4E] flex items-center justify-center shadow-xl hover:shadow-2xl transition-all active:scale-95">
                     <div className="text-white">
                       {item.activeIcon}
                     </div>

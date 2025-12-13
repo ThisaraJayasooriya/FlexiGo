@@ -71,7 +71,7 @@ export default function Toast({ type, message, onClose, duration = 5000 }: Toast
   return (
     <div className={`fixed top-4 right-4 z-50 max-w-md w-full mx-4 animate-slide-in-right`}>
       <div className={`flex items-start gap-3 p-4 rounded-xl border-2 ${color.bg} ${color.border} shadow-lg`}>
-        <div className={`flex-shrink-0 ${color.icon}`}>
+        <div className={`shrink-0 ${color.icon}`}>
           {icons[type]}
         </div>
         <div className="flex-1">
@@ -79,7 +79,7 @@ export default function Toast({ type, message, onClose, duration = 5000 }: Toast
         </div>
         <button
           onClick={onClose}
-          className={`flex-shrink-0 ${color.text} hover:opacity-75 transition-opacity`}
+          className={`shrink-0 ${color.text} hover:opacity-75 transition-opacity`}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

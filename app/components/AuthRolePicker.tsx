@@ -3,13 +3,13 @@ import React from "react";
 
 export default function AuthRolePicker({ value, onChange }: { value: "worker" | "business"; onChange: (v: "worker" | "business") => void; }) {
   return (
-    <div className="inline-flex items-center gap-2 p-1.5 bg-gradient-to-r from-[#DBE2EF]/30 to-[#F9F7F7] rounded-2xl border border-[#DBE2EF]/50 shadow-inner mx-auto">
+    <div className="inline-flex items-center gap-2 p-1.5 bg-linear-to-r from-[#DBE2EF]/30 to-[#F9F7F7] rounded-2xl border border-[#DBE2EF]/50 shadow-inner mx-auto">
       <button
         type="button"
         onClick={() => onChange("worker")}
         className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
           value === "worker" 
-            ? "bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white shadow-lg" 
+            ? "bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white shadow-lg" 
             : "bg-transparent text-gray-600 hover:text-[#3F72AF]"
         }`}
       >
@@ -25,7 +25,7 @@ export default function AuthRolePicker({ value, onChange }: { value: "worker" | 
         onClick={() => onChange("business")}
         className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
           value === "business" 
-            ? "bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white shadow-lg" 
+            ? "bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white shadow-lg" 
             : "bg-transparent text-gray-600 hover:text-[#3F72AF]"
         }`}
       >

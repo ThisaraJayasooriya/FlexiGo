@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] relative overflow-hidden font-sans antialiased">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] relative overflow-hidden font-sans antialiased">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
@@ -40,7 +40,7 @@ export default function Home() {
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-[#112D4E] leading-[1.1] tracking-tight">
                   Connect with
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#3F72AF] to-[#112D4E] mt-2">Talent Instantly</span>
+                  <span className="block text-transparent bg-clip-text bg-linear-to-r from-[#3F72AF] to-[#112D4E] mt-2">Talent Instantly</span>
                 </h1>
                 <p className="text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
                   Bridge event businesses with skilled part-time workers. Fast, reliable, and local connections for your event needs.
@@ -51,7 +51,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
                   href="/register" 
-                  className="group relative overflow-hidden px-8 py-4 sm:py-5 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white text-base sm:text-lg font-bold rounded-2xl shadow-2xl hover:shadow-[#3F72AF]/40 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                  className="group relative overflow-hidden px-8 py-4 sm:py-5 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-base sm:text-lg font-bold rounded-2xl shadow-2xl hover:shadow-[#3F72AF]/40 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     Get Started Free
@@ -59,7 +59,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                 </Link>
                 <Link 
                   href="#features" 
@@ -72,26 +72,26 @@ export default function Home() {
               {/* Stats */}
               <div className="flex flex-wrap gap-6 sm:gap-8 justify-center lg:justify-start pt-6">
                 <div className="text-center lg:text-left transform hover:scale-110 transition-transform">
-                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-[#3F72AF] to-[#112D4E]">24/7</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-linear-to-br from-[#3F72AF] to-[#112D4E]">24/7</div>
                   <div className="text-xs sm:text-sm text-gray-600 font-semibold uppercase tracking-wider mt-1">Available</div>
                 </div>
                 <div className="w-px bg-gray-300 hidden sm:block"></div>
                 <div className="text-center lg:text-left transform hover:scale-110 transition-transform">
-                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-[#3F72AF] to-[#112D4E]">100%</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-linear-to-br from-[#3F72AF] to-[#112D4E]">100%</div>
                   <div className="text-xs sm:text-sm text-gray-600 font-semibold uppercase tracking-wider mt-1">Secure</div>
                 </div>
                 <div className="w-px bg-gray-300 hidden sm:block"></div>
                 <div className="text-center lg:text-left transform hover:scale-110 transition-transform">
-                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-[#3F72AF] to-[#112D4E]">Fast</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-linear-to-br from-[#3F72AF] to-[#112D4E]">Fast</div>
                   <div className="text-xs sm:text-sm text-gray-600 font-semibold uppercase tracking-wider mt-1">Matching</div>
                 </div>
               </div>
             </div>
 
             {/* Right Column - Features Card */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl p-6 sm:p-10 space-y-8 border border-white/20">
+            <div className="bg-white/90 backdrop-blur-xl rounded-4xl shadow-2xl p-6 sm:p-10 space-y-8 border border-white/20">
               <div className="space-y-3">
-                <div className="inline-block px-3 py-1.5 bg-gradient-to-r from-[#3F72AF]/10 to-[#112D4E]/10 rounded-full">
+                <div className="inline-block px-3 py-1.5 bg-linear-to-r from-[#3F72AF]/10 to-[#112D4E]/10 rounded-full">
                   <span className="text-xs font-bold text-[#3F72AF] uppercase tracking-widest">Features</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#112D4E] text-center lg:text-left leading-tight tracking-tight">
@@ -102,7 +102,7 @@ export default function Home() {
               <div className="space-y-4">
                 {/* Feature 1 */}
                 <div className="group flex items-start gap-5 p-5 rounded-2xl hover:bg-[#DBE2EF]/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
-                  <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="shrink-0 w-14 h-14 bg-linear-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -115,7 +115,7 @@ export default function Home() {
 
                 {/* Feature 2 */}
                 <div className="group flex items-start gap-5 p-5 rounded-2xl hover:bg-[#DBE2EF]/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
-                  <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[#DBE2EF] to-[#3F72AF]/30 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="shrink-0 w-14 h-14 bg-linear-to-br from-[#DBE2EF] to-[#3F72AF]/30 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg className="w-7 h-7 text-[#112D4E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -128,7 +128,7 @@ export default function Home() {
 
                 {/* Feature 3 */}
                 <div className="group flex items-start gap-5 p-5 rounded-2xl hover:bg-[#DBE2EF]/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
-                  <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[#112D4E] to-[#3F72AF] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="shrink-0 w-14 h-14 bg-linear-to-br from-[#112D4E] to-[#3F72AF] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
@@ -141,7 +141,7 @@ export default function Home() {
 
                 {/* Feature 4 */}
                 <div className="group flex items-start gap-5 p-5 rounded-2xl hover:bg-[#DBE2EF]/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
-                  <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="shrink-0 w-14 h-14 bg-linear-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -164,9 +164,9 @@ export default function Home() {
                 © 2025 <span className="text-[#3F72AF]">FlexiGo</span>. All rights reserved.
               </p>
               <div className="flex items-center gap-2.5">
-                <span className="px-3 py-1.5 bg-gradient-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">PWA</span>
-                <span className="px-3 py-1.5 bg-gradient-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">Mobile-First</span>
-                <span className="px-3 py-1.5 bg-gradient-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">Secure</span>
+                <span className="px-3 py-1.5 bg-linear-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">PWA</span>
+                <span className="px-3 py-1.5 bg-linear-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">Mobile-First</span>
+                <span className="px-3 py-1.5 bg-linear-to-r from-[#DBE2EF]/50 to-[#3F72AF]/20 backdrop-blur-sm rounded-lg text-xs font-bold text-[#112D4E] border border-white/40">Secure</span>
               </div>
             </div>
           </div>

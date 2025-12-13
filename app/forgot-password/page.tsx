@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
@@ -65,12 +65,12 @@ export default function ForgotPasswordPage() {
         </Link>
 
         {/* Main Card */}
-        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-[2rem] shadow-2xl border border-white/20">
+        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-4xl shadow-2xl border border-white/20">
           {!emailSent ? (
             <>
               {/* Header */}
               <div className="text-center mb-10">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
             <>
               {/* Success State */}
               <div className="text-center py-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-200 mb-4 shadow-lg">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-green-100 to-green-200 mb-4 shadow-lg">
                   <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
@@ -144,9 +144,9 @@ export default function ForgotPasswordPage() {
                 </p>
                 
                 {/* Info Box */}
-                <div className="bg-gradient-to-br from-[#DBE2EF]/50 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-5 mb-6 text-left shadow-lg">
+                <div className="bg-linear-to-br from-[#DBE2EF]/50 to-[#3F72AF]/10 border-2 border-[#DBE2EF] rounded-2xl p-5 mb-6 text-left shadow-lg">
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
@@ -172,7 +172,7 @@ export default function ForgotPasswordPage() {
                   </button>
                   <Link
                     href="/login"
-                    className="block w-full rounded-2xl px-6 py-4 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm font-bold hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    className="block w-full rounded-2xl px-6 py-4 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm font-bold hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Back to Login
                   </Link>
