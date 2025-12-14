@@ -66,6 +66,27 @@ export default function Dashboard() {
 function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout: () => void }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
+  const [profileName, setProfileName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch("/api/businesses/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (res.ok && json.profile) {
+          setProfileName(json.profile.company_name || userName);
+          setProfileImage(json.profile.logo_url || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, [userName]);
 
   const businessNavItems: NavItem[] = [
     {
@@ -104,6 +125,9 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
       <Header 
         title="FlexiGo" 
         subtitle="Business Portal" 
+        userName={profileName || userName}
+        userImage={profileImage}
+        onProfileClick={() => router.push("/profile")}
         onLogout={onLogout} 
       />
 
@@ -222,6 +246,27 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
 function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: () => void }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
+  const [profileName, setProfileName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch("/api/workers/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (res.ok && json.profile) {
+          setProfileName(json.profile.name || userName);
+          setProfileImage(""); // Worker profiles don't have profile pictures yet
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, [userName]);
 
   const workerNavItems: NavItem[] = [
     {
@@ -259,6 +304,9 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
       <Header 
         title="FlexiGo" 
         subtitle="Worker Portal" 
+        userName={profileName || userName}
+        userImage={profileImage}
+        onProfileClick={() => router.push("/profile")}
         onLogout={onLogout} 
       />
 

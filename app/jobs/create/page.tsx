@@ -1,13 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
+import Header from "@/app/components/Header";
+import BottomNav, { NavItem } from "@/app/components/BottomNav";
 
 export default function CreateJobPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("create");
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -19,6 +22,65 @@ export default function CreateJobPage() {
   });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success" | "warning"; message: string } | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch("/api/businesses/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (res.ok && json.profile) {
+          setProfileName(json.profile.company_name || "");
+          setProfileImage(json.profile.logo_url || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const businessNavItems: NavItem[] = [
+    {
+      id: "home",
+      label: "Home",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      href: "/dashboard"
+    },
+    {
+      id: "jobs",
+      label: "Jobs",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      href: "/jobs/business"
+    },
+    {
+      id: "create",
+      label: "Create",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
+      href: "/jobs/create",
+      elevated: true
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+      href: "/profile"
+    }
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    document.cookie = "access_token=; path=/; max-age=0";
+    router.push("/");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +138,19 @@ export default function CreateJobPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-[#F8F9FA] via-white to-[#D3D9D2] py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
+      <Header 
+        title="FlexiGo" 
+        subtitle="Business Portal"
+        userName={profileName}
+        userImage={profileImage}
+        onProfileClick={() => router.push("/profile")}
+        onLogout={handleLogout}
+      />
+
+      <main className="max-w-3xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -275,6 +347,9 @@ export default function CreateJobPage() {
           </form>
         </div>
       </div>
-    </main>
+      </main>
+
+      <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
+    </div>
   );
 }

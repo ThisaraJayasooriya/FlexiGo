@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
+import Header from "@/app/components/Header";
+import BottomNav, { NavItem } from "@/app/components/BottomNav";
 
 interface Job {
   id: string;
@@ -19,16 +21,74 @@ interface Job {
 
 export default function WorkerJobsPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("jobs");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkill, setSelectedSkill] = useState("");
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+
+  const workerNavItems: NavItem[] = [
+    {
+      id: "home",
+      label: "Home",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      href: "/dashboard"
+    },
+    {
+      id: "jobs",
+      label: "Jobs",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      href: "/jobs/worker"
+    },
+    {
+      id: "schedule",
+      label: "Schedule",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      href: "/schedule"
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+      href: "/profile"
+    }
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    document.cookie = "access_token=; path=/; max-age=0";
+    router.push("/");
+  };
 
   useEffect(() => {
     fetchJobs();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("/api/workers/profile", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (res.ok && json.profile) {
+        setProfileName(json.profile.name || "");
+        // Workers don't have profile pictures in the database
+        setProfileImage("");
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
 
   useEffect(() => {
     filterJobs();
@@ -94,20 +154,41 @@ export default function WorkerJobsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F8F9FA] to-[#D3D9D2]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#124E66] border-t-transparent mb-4"></div>
-          <p className="text-gray-600">Loading available jobs...</p>
+      <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+        <Header 
+          title="FlexiGo" 
+          subtitle="Worker Portal" 
+          userName={profileName}
+          userImage={profileImage}
+          onProfileClick={() => router.push("/profile")}
+          onLogout={handleLogout} 
+        />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#3F72AF] border-t-transparent mb-4"></div>
+            <p className="text-gray-600 font-semibold">Loading available jobs...</p>
+          </div>
         </div>
+        <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F8F9FA] to-[#D3D9D2]">
+    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      
+      <Header 
+        title="FlexiGo" 
+        subtitle="Worker Portal"
+        userName={profileName}
+        userImage={profileImage}
+        onProfileClick={() => router.push("/profile")}
+        onLogout={handleLogout}
+      />
 
-      {/* Header */}
+      <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
+      {/* Page Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -129,7 +210,7 @@ export default function WorkerJobsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters Section */}
         <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,7 +415,10 @@ export default function WorkerJobsPage() {
             ))}
           </div>
         )}
+      </div>
       </main>
+
+      <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 }
