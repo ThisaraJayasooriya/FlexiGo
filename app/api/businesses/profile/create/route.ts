@@ -27,16 +27,30 @@ export async function POST(req: Request) {
 
     const user_id = userData.user.id;
 
-    // Read form data
+    //  Read form data
     const formData = await req.formData();
 
     const company_name = formData.get("company_name") as string;
     const description = formData.get("description") as string;
+    const business_type = formData.get("business_type") as string | null;
+    const location = formData.get("location") as string | null;
+    const phone = formData.get("phone") as string | null;
+    const website = formData.get("website") as string | null;
+    const years_experience = formData.get("years_experience")
+      ? Number(formData.get("years_experience"))
+      : null;
+
+    // social_links comes as JSON string
+    const social_links_raw = formData.get("social_links") as string | null;
+    const social_links = social_links_raw
+      ? JSON.parse(social_links_raw)
+      : [];
+
     const logo = formData.get("logo") as File | null;
 
     let logo_url: string | null = null;
 
-    // Upload logo if provided
+    //  Upload logo if provided
     if (logo) {
       const ext = logo.name.split(".").pop();
       const filePath = `logos/${user_id}.${ext}`;
@@ -62,7 +76,7 @@ export async function POST(req: Request) {
       logo_url = data.publicUrl;
     }
 
-    // Upsert business profile
+    //  Upsert business profile
     const { data, error } = await supabaseAdmin
       .from("business_profiles")
       .upsert(
@@ -70,7 +84,13 @@ export async function POST(req: Request) {
           user_id,
           company_name,
           description,
-          logo_url
+          logo_url,
+          business_type,
+          location,
+          phone,
+          website,
+          social_links,
+          years_experience
         },
         { onConflict: "user_id" }
       )
@@ -81,7 +101,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // Mark onboarding complete
+    //  Mark onboarding complete
     await supabaseAdmin
       .from("user_roles")
       .update({ first_login_complete: true })
