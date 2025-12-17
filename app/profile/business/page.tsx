@@ -248,7 +248,7 @@ export default function BusinessProfilePage() {
               </div>
 
               {/* Profile Info */}
-              <div className="flex-1 pt-2 sm:pt-4">
+              <div className="flex-1 pt-2 sm:pt-4 relative z-10">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-2">
                   <div>
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#112D4E] mb-1">{profile?.company_name}</h1>
