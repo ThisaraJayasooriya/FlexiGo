@@ -9,19 +9,57 @@ const supabaseAdmin = createClient(
   }
 );
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    // Only show open jobs to workers
+    //  Get worker from token
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: userData, error: userErr } =
+      await supabaseAdmin.auth.getUser(token);
+
+    if (userErr || !userData.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const worker_id = userData.user.id;
+
+    //  Fetch jobs + applications by this worker
     const { data, error } = await supabaseAdmin
       .from("jobs")
-      .select("*")
+      .select(`
+        id,
+        title,
+        date,
+        time,
+        venue,
+        pay_rate,
+        required_skills,
+        number_of_workers,
+        status,
+        created_at,
+        applications (
+          id
+        )
+      `)
       .eq("status", "open")
+      .eq("applications.worker_id", worker_id)
       .order("created_at", { ascending: false });
 
-    if (error)
+    if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
-    return NextResponse.json({ jobs: data });
+    //  Add has_applied flag
+    const jobsWithAppliedFlag = data.map((job: any) => ({
+      ...job,
+      has_applied: job.applications.length > 0,
+      applications: undefined // remove raw applications array
+    }));
+
+    return NextResponse.json({ jobs: jobsWithAppliedFlag });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
