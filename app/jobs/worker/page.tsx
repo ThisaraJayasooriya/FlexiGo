@@ -17,6 +17,7 @@ interface Job {
   number_of_workers: number;
   business_id: string;
   created_at: string;
+  has_applied: boolean;
 }
 
 export default function WorkerJobsPage() {
@@ -96,7 +97,12 @@ export default function WorkerJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("/api/jobs/list");
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("/api/jobs/list", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to fetch jobs");
@@ -150,6 +156,45 @@ export default function WorkerJobsPage() {
       job.required_skills?.forEach((skill) => skills.add(skill));
     });
     return Array.from(skills).sort();
+  };
+
+  const handleApply = async (jobId: string) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        setToast({ type: "error", message: "Please login to apply" });
+        return;
+      }
+
+      const res = await fetch("/api/applications/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ job_id: jobId })
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "Failed to apply");
+      }
+
+      setToast({ type: "success", message: "Application submitted successfully!" });
+      
+      // Update the job in the local state to reflect the applied status
+      setJobs(prevJobs =>
+        prevJobs.map(job =>
+          job.id === jobId ? { ...job, has_applied: true } : job
+        )
+      );
+    } catch (error: any) {
+      setToast({
+        type: "error",
+        message: error.message || "Failed to apply for job"
+      });
+    }
   };
 
   if (loading) {
@@ -403,8 +448,16 @@ export default function WorkerJobsPage() {
 
                   {/* Apply Button */}
                   <div className="flex lg:flex-col gap-2 lg:w-40">
-                    <button className="flex-1 lg:flex-none px-6 py-3 bg-[#124E66] text-white font-medium rounded-lg hover:bg-[#0d3a4d] transition-colors">
-                      Apply Now
+                    <button 
+                      onClick={() => handleApply(job.id)}
+                      className={`flex-1 lg:flex-none px-6 py-3 font-medium rounded-lg transition-colors ${
+                        job.has_applied
+                          ? "bg-gray-400 text-white cursor-not-allowed"
+                          : "bg-[#124E66] text-white hover:bg-[#0d3a4d]"
+                      }`}
+                      disabled={job.has_applied}
+                    >
+                      {job.has_applied ? "Applied" : "Apply Now"}
                     </button>
                     <button className="flex-1 lg:flex-none px-6 py-3 text-[#124E66] bg-[#124E66]/10 font-medium rounded-lg hover:bg-[#124E66]/20 transition-colors">
                       Details
