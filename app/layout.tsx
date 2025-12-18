@@ -1,5 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
+import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
+
 export const metadata = {
   title: "FlexiGo",
   description: "Flexible part-time job marketplace",
@@ -19,7 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#124E66" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
       </head>
-      <body className="bg-[#F8F9FA] text-[#124E66]">{children}</body>
+      <body className="bg-[#F8F9FA] text-[#124E66]">
+        <ServiceWorkerRegistration />
+        {children}
+      </body>
     </html>
   );
 }
