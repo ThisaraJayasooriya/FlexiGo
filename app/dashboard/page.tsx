@@ -176,14 +176,17 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
             <p className="text-xs text-gray-600">View postings</p>
           </button>
 
-          <button className="group bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
+          <button 
+            onClick={() => router.push("/applications/business")}
+            className="group bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+          >
             <div className="w-12 h-12 bg-linear-to-br from-[#3F72AF]/20 to-[#DBE2EF] rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
               <svg className="w-6 h-6 text-[#112D4E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="font-bold text-[#112D4E] text-sm mb-1">Workers</h3>
-            <p className="text-xs text-gray-600">Find talent</p>
+            <h3 className="font-bold text-[#112D4E] text-sm mb-1">Applications</h3>
+            <p className="text-xs text-gray-600">Review applicants</p>
           </button>
 
           <button className="group bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
