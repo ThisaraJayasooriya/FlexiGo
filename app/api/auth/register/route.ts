@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
+import { registerSchema } from "@/lib/validators/authSchemas";
 
 // Create admin client for bypassing RLS
 const supabaseAdmin = createClient(
@@ -18,6 +19,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { email, password, role } = body; // role: "worker" | "business"
+
+    // Validate input using Zod schema
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
+      const errors = validation.error.issues.map((err) => err.message).join(", ");
+      return NextResponse.json({ error: errors }, { status: 400 });
+    }
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
