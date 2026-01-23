@@ -403,7 +403,7 @@ export default function BusinessApplicationsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Pay Rate</p>
-                            <p className="text-sm sm:text-base font-bold text-green-600">${selectedApplication.jobs.pay_rate}/hour</p>
+                            <p className="text-sm sm:text-base font-bold text-green-600">LKR {selectedApplication.jobs.pay_rate}/hour</p>
                           </div>
                         </div>
                       </div>

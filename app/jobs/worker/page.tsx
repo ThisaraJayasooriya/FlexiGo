@@ -396,7 +396,7 @@ export default function WorkerJobsPage() {
                         </p>
                       </div>
                       <div className="ml-2 px-4 py-2 bg-green-100 rounded-lg">
-                        <p className="text-2xl font-bold text-green-700">${job.pay_rate.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-green-700">LKR {job.pay_rate.toFixed(2)}</p>
                         <p className="text-xs text-green-600">per hour</p>
                       </div>
                     </div>
