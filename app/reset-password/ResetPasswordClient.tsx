@@ -5,6 +5,7 @@ import Link from "next/link";
 import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
+import { validatePasswordStrength } from "@/lib/validators/authSchemas";
 
 export default function ResetPasswordClient() {
   const router = useRouter();
@@ -14,6 +15,9 @@ export default function ResetPasswordClient() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success" | "warning"; message: string } | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const passwordValidation = validatePasswordStrength(password);
 
   useEffect(() => {
     // Get access token from URL hash (Supabase redirect format)
@@ -35,11 +39,11 @@ export default function ResetPasswordClient() {
     e.preventDefault();
     setToast(null);
 
-    // Validation
-    if (password.length < 6) {
+    // Validate password strength
+    if (!passwordValidation.isValid) {
       setToast({
         type: "warning",
-        message: "Password must be at least 6 characters long",
+        message: "Password does not meet requirements",
       });
       return;
     }
@@ -136,12 +140,40 @@ export default function ResetPasswordClient() {
                 placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setPasswordTouched(true)}
                 required
-                minLength={6}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Must be at least 6 characters long
-              </p>
+              
+              {/* Password Strength Indicator */}
+              {passwordTouched && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">
+                    Password must contain:
+                  </p>
+                  <ul className="space-y-1">
+                    <PasswordRequirement
+                      met={password.length >= 8}
+                      text="At least 8 characters"
+                    />
+                    <PasswordRequirement
+                      met={/[A-Z]/.test(password)}
+                      text="One uppercase letter (A-Z)"
+                    />
+                    <PasswordRequirement
+                      met={/[a-z]/.test(password)}
+                      text="One lowercase letter (a-z)"
+                    />
+                    <PasswordRequirement
+                      met={/[0-9]/.test(password)}
+                      text="One number (0-9)"
+                    />
+                    <PasswordRequirement
+                      met={/[!@#$%^&*(),.?":{}|<>]/.test(password)}
+                      text="One special character (!@#$%...)"
+                    />
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -242,5 +274,39 @@ export default function ResetPasswordClient() {
         </p>
       </div>
     </main>
+  );
+}
+
+// Password Requirement Component
+function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
+  return (
+    <li className="flex items-center gap-2 text-xs">
+      {met ? (
+        <svg
+          className="w-4 h-4 text-green-500 shrink-0"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ) : (
+        <svg
+          className="w-4 h-4 text-gray-400 shrink-0"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+      <span className={met ? "text-green-700" : "text-gray-600"}>{text}</span>
+    </li>
   );
 }

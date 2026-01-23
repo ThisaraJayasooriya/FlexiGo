@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { passwordSchema } from "@/lib/validators/authSchemas";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -12,8 +13,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Access token required" }, { status: 400 });
     }
 
-    if (!password || password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    // Validate password strength using Zod schema
+    const validation = passwordSchema.safeParse(password);
+    if (!validation.success) {
+      const errors = validation.error.errors.map((err) => err.message).join(", ");
+      return NextResponse.json({ error: errors }, { status: 400 });
     }
 
     // Create a Supabase client
