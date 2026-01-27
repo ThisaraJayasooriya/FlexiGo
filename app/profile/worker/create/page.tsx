@@ -4,32 +4,37 @@ import { useRouter } from "next/navigation";
 import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
+import SkillSelector from "@/app/components/SkillSelector";
 
 export default function CreateWorkerProfile() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
-    skills: "",
+    skills: [] as string[],
     availability: "",
   });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
+  const [skillError, setSkillError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setToast(null);
+    setSkillError("");
+
+    // Validate skills
+    if (formData.skills.length === 0) {
+      setSkillError("Please select at least one skill");
+      setLoading(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("Not authenticated");
       }
-
-      const skillsArray = formData.skills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
 
       const res = await fetch("/api/workers/profile/create", {
         method: "POST",
@@ -39,13 +44,22 @@ export default function CreateWorkerProfile() {
         },
         body: JSON.stringify({
           name: formData.name,
-          skills: skillsArray,
+          skills: formData.skills,
           availability: formData.availability,
         }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to create profile");
+      if (!res.ok) {
+        // Handle validation errors from backend
+        if (json.details) {
+          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
+          if (skillErrorDetail) {
+            setSkillError(skillErrorDetail.message);
+          }
+        }
+        throw new Error(json?.error || "Failed to create profile");
+      }
 
       // Update cookie with fresh token
       if (token) {
@@ -117,16 +131,20 @@ export default function CreateWorkerProfile() {
                 <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
-                Skills
+                Skills <span className="text-red-500">*</span>
               </label>
-              <Input
-                type="text"
-                placeholder="Event setup, Catering, Security, etc."
-                value={formData.skills}
-                onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                required
+              <SkillSelector
+                selectedSkills={formData.skills}
+                onChange={(skills) => {
+                  setFormData({ ...formData, skills });
+                  setSkillError("");
+                }}
+                maxSkills={10}
+                error={skillError}
               />
-              <p className="mt-1 text-xs text-gray-500">Separate multiple skills with commas</p>
+              <p className="mt-2 text-xs text-gray-500">
+                Select skills relevant to the jobs you're interested in (maximum 10)
+              </p>
             </div>
 
             {/* Availability */}

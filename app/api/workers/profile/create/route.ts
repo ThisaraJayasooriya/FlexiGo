@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type { WorkerProfile } from "@/types/worker";
+import { createWorkerProfileSchema } from "@/lib/validators/workerSchemas";
+import type { ZodIssue } from "zod";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +17,20 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   try {
-    const body: Omit<WorkerProfile, "user_id"> = await req.json();
+    const body = await req.json();
+
+    // Validate request body against schema
+    const validation = createWorkerProfileSchema.safeParse(body);
+    if (!validation.success) {
+      const errors = validation.error.issues.map((err: ZodIssue) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      return NextResponse.json(
+        { error: "Validation failed", details: errors },
+        { status: 400 }
+      );
+    }
 
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
@@ -30,7 +45,7 @@ export async function POST(req: Request) {
     // Upsert worker profile using admin client to bypass RLS
     const { data, error } = await supabaseAdmin
       .from("worker_profiles")
-      .upsert({ user_id, ...body }, { onConflict: "user_id" })
+      .upsert({ user_id, ...validation.data }, { onConflict: "user_id" })
       .select(); // returns array, do NOT use .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });

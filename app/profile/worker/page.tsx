@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
+import SkillSelector from "@/app/components/SkillSelector";
 import { getInitials } from "@/lib/utils";
+import { getCategoryForSkill } from "@/lib/skills/skillCategories";
 
 export default function WorkerProfile() {
   const router = useRouter();
@@ -19,7 +21,7 @@ export default function WorkerProfile() {
   // Edit form states
   const [name, setName] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState("");
+  const [skillError, setSkillError] = useState<string>("");
   const [availability, setAvailability] = useState("");
 
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
@@ -101,20 +103,17 @@ export default function WorkerProfile() {
     router.push("/");
   };
 
-  const handleAddSkill = () => {
-    if (skillInput.trim() && !skills.includes(skillInput.trim())) {
-      setSkills([...skills, skillInput.trim()]);
-      setSkillInput("");
-    }
-  };
-
-  const handleRemoveSkill = (skill: string) => {
-    setSkills(skills.filter(s => s !== skill));
-  };
-
   const handleSave = async () => {
     setSaving(true);
     setToast(null);
+    setSkillError("");
+
+    // Validate skills
+    if (skills.length === 0) {
+      setSkillError("Please select at least one skill");
+      setSaving(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem("access_token");
@@ -134,7 +133,16 @@ export default function WorkerProfile() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to update profile");
+      if (!res.ok) {
+        // Handle validation errors from backend
+        if (json.details) {
+          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
+          if (skillErrorDetail) {
+            setSkillError(skillErrorDetail.message);
+          }
+        }
+        throw new Error(json?.error || "Failed to update profile");
+      }
 
       setProfile(json.profile);
       setEditing(false);
@@ -268,48 +276,17 @@ export default function WorkerProfile() {
                 />
               </div>
 
-              {/* Skills */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2.5">
-                  <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
-                  Skills
+              {/* Skills <span className="text-red-500">*</span>
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                  <input
-                    type="text"
-                    value={skillInput}
-                    onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSkill())}
-                    placeholder="Type a skill and press Enter"
-                    className="flex-1 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#3F72AF] focus:ring-2 focus:ring-[#3F72AF]/20 transition-all duration-200 text-[#112D4E] font-medium outline-none"
-                  />
-                  <button
-                    onClick={handleAddSkill}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Add Skill</span>
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="group inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-[#DBE2EF] to-[#3F72AF]/20 rounded-xl text-sm font-semibold text-[#112D4E] hover:shadow-md transition-all"
-                    >
-                      <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {skill}
-                      <button
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="ml-1 text-gray-400 hover:text-red-500 hover:scale-110 transition-all"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <SkillSelector
+                  selectedSkills={skills}
+                  onChange={(newSkills) => {
+                    setSkills(newSkills);
+                    setSkillError("");
+                  }}
+                  maxSkills={10}
+                  error={skillError}
+                /   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
@@ -379,17 +356,28 @@ export default function WorkerProfile() {
                   Skills & Expertise
                 </h3>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
-                  {profile.skills.map((skill: string, index: number) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-linear-to-r from-[#DBE2EF] to-[#3F72AF]/20 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-[#112D4E] shadow-sm"
-                    >
-                      <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {skill}
-                    </span>
-                  ))}
+                  {profile.skills.map((skill: string, index: number) => {
+                    const category = getCategoryForSkill(skill);
+                    return (
+                      <span
+                        key={index}
+                        className="inline-flex flex-col px-3 sm:px-4 py-2 sm:py-2.5 bg-linear-to-r from-[#DBE2EF] to-[#3F72AF]/20 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                        title={category || undefined}
+                      >
+                        <span className="text-xs sm:text-sm font-semibold text-[#112D4E] flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {skill}
+                        </span>
+                        {category && (
+                          <span className="text-[10px] text-gray-500 mt-0.5">
+                            {category}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}
