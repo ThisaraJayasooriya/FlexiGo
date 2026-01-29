@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { updateWorkerProfileSchema } from "@/lib/validators/workerSchemas";
+import type { ZodIssue } from "zod";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,10 +60,23 @@ export async function PUT(req: Request) {
     const user_id = userData.user.id;
     const body = await req.json();
 
-    // Update worker profile
+    // Validate request body against schema (partial updates allowed)
+    const validation = updateWorkerProfileSchema.safeParse(body);
+    if (!validation.success) {
+      const errors = validation.error.issues.map((err: ZodIssue) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      return NextResponse.json(
+        { error: "Validation failed", details: errors },
+        { status: 400 }
+      );
+    }
+
+    // Update worker profile with validated data
     const { data, error } = await supabaseAdmin
       .from("worker_profiles")
-      .update(body)
+      .update(validation.data)
       .eq("user_id", user_id)
       .select()
       .single();
