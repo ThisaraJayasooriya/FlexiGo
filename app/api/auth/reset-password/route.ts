@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     // Validate password strength using Zod schema
     const validation = passwordSchema.safeParse(password);
     if (!validation.success) {
-      const errors = validation.error.errors.map((err) => err.message).join(", ");
+      const errors = validation.error.issues.map((err) => err.message).join(", ");
       return NextResponse.json({ error: errors }, { status: 400 });
     }
 

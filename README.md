@@ -1,4 +1,4 @@
-# 🚀 FlexiGo
+# FlexiGo
 
 **Connect event businesses with reliable part-time workers**
 
@@ -12,7 +12,7 @@ FlexiGo is a modern Progressive Web Application (PWA) that bridges the gap betwe
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
@@ -28,33 +28,33 @@ FlexiGo is a modern Progressive Web Application (PWA) that bridges the gap betwe
 
 ---
 
-## ✨ Features
+## Features
 
 ### For Businesses
-- 📝 **Create Job Postings** - Post flexible work opportunities with detailed requirements
-- 👥 **Manage Applications** - Review and manage worker applications efficiently
-- 📊 **Business Profiles** - Create and manage comprehensive business profiles
-- 🔍 **Find Talent** - Access a pool of skilled part-time workers
-- 📱 **Mobile-First** - Manage your workforce on the go
+- **Create Job Postings** - Post flexible work opportunities with detailed requirements
+- **Manage Applications** - Review and manage worker applications efficiently
+- **Business Profiles** - Create and manage comprehensive business profiles
+- **Find Talent** - Access a pool of skilled part-time workers
+- **Mobile-First** - Manage your workforce on the go
 
 ### For Workers
-- 🔎 **Browse Jobs** - Discover relevant part-time opportunities
-- 📄 **Quick Apply** - Apply to jobs with your professional profile
-- 👤 **Worker Profiles** - Showcase your skills and experience
-- 📲 **Real-Time Updates** - Stay informed about application status
-- 💼 **Track Applications** - Monitor all your job applications in one place
+- **Browse Jobs** - Discover relevant part-time opportunities
+- **Quick Apply** - Apply to jobs with your professional profile
+- **Worker Profiles** - Showcase your skills and experience
+- **Real-Time Updates** - Stay informed about application status
+- **Track Applications** - Monitor all your job applications in one place
 
 ### Platform Features
-- 🔐 **Secure Authentication** - Email/password authentication with password recovery
-- 🎨 **Modern UI/UX** - Clean, intuitive interface with Tailwind CSS
-- 📱 **Progressive Web App** - Installable on any device, works offline
-- ⚡ **Real-Time Data** - Powered by Supabase for instant updates
-- 🔄 **Responsive Design** - Seamless experience across all devices
-- 🎯 **Role-Based Access** - Separate workflows for businesses and workers
+- **Secure Authentication** - Email/password authentication with password recovery
+- **Modern UI/UX** - Clean, intuitive interface with Tailwind CSS
+- **Progressive Web App** - Installable on any device, works offline
+- **Real-Time Data** - Powered by Supabase for instant updates
+- **Responsive Design** - Seamless experience across all devices
+- **Role-Based Access** - Separate workflows for businesses and workers
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework**: [Next.js 16](https://nextjs.org/) with App Router
@@ -76,7 +76,7 @@ FlexiGo is a modern Progressive Web Application (PWA) that bridges the gap betwe
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -118,7 +118,7 @@ The application will be accessible on your network at `http://<your-ip>:3000` (c
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FlexiGo/
@@ -163,7 +163,7 @@ FlexiGo/
 
 ---
 
-## ⚙️ Environment Setup
+## Environment Setup
 
 ### Required Environment Variables
 
@@ -192,7 +192,7 @@ NODE_ENV=development
 
 ---
 
-## 📜 Available Scripts
+## Available Scripts
 
 ```bash
 # Development server (accessible on network)
@@ -210,7 +210,7 @@ npm run lint
 
 ---
 
-## 🔌 API Routes
+## API Routes
 
 ### Authentication
 - `POST /api/auth/register` - User registration
@@ -241,7 +241,7 @@ npm run lint
 
 ---
 
-## 👥 User Roles
+## User Roles
 
 ### Worker
 - Browse and search available jobs
@@ -257,16 +257,16 @@ npm run lint
 
 ---
 
-## 📱 PWA Features
+## PWA Features
 
 FlexiGo is a Progressive Web Application with:
 
-- ✅ **Installable** - Add to home screen on any device
-- ✅ **Offline Support** - Service worker for offline functionality
-- ✅ **App-like Experience** - Standalone display mode
-- ✅ **Responsive** - Works on desktop, tablet, and mobile
-- ✅ **Fast Loading** - Optimized performance with Next.js
-- ✅ **Push Notifications** - Stay updated (when implemented)
+- **Installable** - Add to home screen on any device
+- **Offline Support** - Service worker for offline functionality
+- **App-like Experience** - Standalone display mode
+- **Responsive** - Works on desktop, tablet, and mobile
+- **Fast Loading** - Optimized performance with Next.js
+- **Push Notifications** - Stay updated (when implemented)
 
 ### Manifest Configuration
 
@@ -282,7 +282,7 @@ FlexiGo is a Progressive Web Application with:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -301,19 +301,19 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is part of an individual academic project for Semester 5.
 
 ---
 
-## 📧 Support
+## Support
 
 For support, please contact the development team or open an issue in the repository.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Next.js](https://nextjs.org/)
 - Powered by [Supabase](https://supabase.com/)
@@ -322,4 +322,4 @@ For support, please contact the development team or open an issue in the reposit
 
 ---
 
-**Made with ❤️ for flexible workforce solutions**
+**Made for flexible workforce solutions**
