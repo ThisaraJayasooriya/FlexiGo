@@ -7,6 +7,7 @@ import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
+import SkillSelector from "@/app/components/SkillSelector";
 
 export default function CreateJobPage() {
   const router = useRouter();
@@ -17,9 +18,10 @@ export default function CreateJobPage() {
     time: "",
     venue: "",
     payRate: "",
-    requiredSkills: "",
     workerCount: "",
   });
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
+  const [skillError, setSkillError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success" | "warning"; message: string } | null>(null);
   const [profileName, setProfileName] = useState("");
@@ -86,18 +88,13 @@ export default function CreateJobPage() {
     e.preventDefault();
     setLoading(true);
     setToast(null);
+    setSkillError("");
 
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("Not authenticated");
       }
-
-      // Parse skills from comma-separated string
-      const skillsArray = formData.requiredSkills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
 
       const res = await fetch("/api/jobs/create", {
         method: "POST",
@@ -111,13 +108,22 @@ export default function CreateJobPage() {
           time: formData.time,
           venue: formData.venue,
           payRate: parseFloat(formData.payRate),
-          requiredSkills: skillsArray.length > 0 ? skillsArray : undefined,
+          requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
           workerCount: parseInt(formData.workerCount),
         }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to create job");
+      if (!res.ok) {
+        // Handle validation errors from backend
+        if (json.details) {
+          const skillErrorDetail = json.details.find((d: any) => d.field === "requiredSkills");
+          if (skillErrorDetail) {
+            setSkillError(skillErrorDetail.message);
+          }
+        }
+        throw new Error(json?.error || "Failed to create job");
+      }
 
       setToast({
         type: "success",
@@ -283,18 +289,21 @@ export default function CreateJobPage() {
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
                 Required Skills (Optional)
               </label>
-              <Input
-                type="text"
-                placeholder="e.g., Heavy Lifting, Customer Service, Setup"
-                value={formData.requiredSkills}
-                onChange={(e) => setFormData({ ...formData, requiredSkills: e.target.value })}
+              <SkillSelector
+                selectedSkills={requiredSkills}
+                onChange={(skills) => {
+                  setRequiredSkills(skills);
+                  setSkillError("");
+                }}
+                maxSkills={10}
+                error={skillError}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Separate multiple skills with commas
+              <p className="mt-2 text-xs text-gray-500">
+                Select skills that workers should have for this job (maximum 10)
               </p>
             </div>
 

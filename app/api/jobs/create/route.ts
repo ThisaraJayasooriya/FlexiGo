@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createJobSchema } from "@/lib/validators/jobSchemas";
+import type { ZodIssue } from "zod";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +17,14 @@ export async function POST(req: Request) {
 
     const parsed = createJobSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid job data" }, { status: 400 });
+      const errors = parsed.error.issues.map((err: ZodIssue) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      return NextResponse.json(
+        { error: "Validation failed", details: errors },
+        { status: 400 }
+      );
     }
 
     // Read token from Authorization header
