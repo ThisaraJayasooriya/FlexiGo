@@ -1,14 +1,33 @@
 // lib/validators/jobSchemas.ts
 import { z } from "zod";
+import { ALL_VALID_SKILLS } from "@/lib/skills/skillCategories";
 
 export const createJobSchema = z.object({
-  title: z.string().min(3),
+  title: z.string().min(3, "Job title must be at least 3 characters"),
   date: z.string(), // ISO date
   time: z.string(), // HH:mm
-  venue: z.string().min(3),
-  payRate: z.number().min(0),
-  requiredSkills: z.array(z.string()).optional(),
-  workerCount: z.number().min(1),
+  venue: z.string().min(3, "Venue must be at least 3 characters"),
+  payRate: z.number().min(0, "Pay rate must be a positive number"),
+  requiredSkills: z
+    .array(z.string())
+    .max(10, "Maximum 10 skills allowed")
+    .refine(
+      (skills) => {
+        // Check for duplicates
+        const uniqueSkills = new Set(skills);
+        return uniqueSkills.size === skills.length;
+      },
+      { message: "Duplicate skills are not allowed" }
+    )
+    .refine(
+      (skills) => {
+        // Validate each skill against predefined list
+        return skills.every((skill) => ALL_VALID_SKILLS.includes(skill));
+      },
+      { message: "One or more skills are not valid. Please select from the predefined list." }
+    )
+    .optional(),
+  workerCount: z.number().min(1, "At least 1 worker is required"),
 });
 
 export type CreateJobInput = z.infer<typeof createJobSchema>;
