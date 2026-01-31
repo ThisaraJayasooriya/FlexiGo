@@ -50,28 +50,16 @@ export default function CreateWorkerProfile() {
     }
 
     try {
-      const res = await apiClient.post("/api/workers/profile/create", {
+      const json = await apiClient.post("/api/workers/profile/create", {
         name: formData.name,
         skills: formData.skills,
         availability: formData.availability,
-        location: location,
+        city: location.city,
+        district: location.district,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        formattedAddress: location.formattedAddress,
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-          const locationErrorDetail = json.details.find((d: any) => d.field.startsWith("location"));
-          if (locationErrorDetail) {
-            setLocationError(locationErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to create profile");
-      }
 
       setToast({
         type: "success",
@@ -82,6 +70,21 @@ export default function CreateWorkerProfile() {
         router.push("/dashboard");
       }, 1500);
     } catch (error: any) {
+      // Handle validation errors from backend
+      if (error.message.includes("Validation failed") && error.details) {
+        const skillErrorDetail = error.details.find((d: any) => d.field === "skills");
+        if (skillErrorDetail) {
+          setSkillError(skillErrorDetail.message);
+        }
+        const locationErrorDetail = error.details.find((d: any) => 
+          d.field === "city" || d.field === "district" || 
+          d.field === "latitude" || d.field === "longitude"
+        );
+        if (locationErrorDetail) {
+          setLocationError(locationErrorDetail.message);
+        }
+      }
+      
       setToast({
         type: "error",
         message: error.message || "Failed to create profile",

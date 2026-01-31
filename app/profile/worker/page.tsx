@@ -83,7 +83,19 @@ export default function WorkerProfile() {
       setName(json.profile.name || "");
       setSkills(json.profile.skills || []);
       setAvailability(json.profile.availability || "");
-      setLocation(json.profile.location || null);
+      
+      // Reconstruct location object from separate columns
+      if (json.profile.latitude && json.profile.longitude) {
+        setLocation({
+          city: json.profile.city || "",
+          district: json.profile.district || "",
+          latitude: json.profile.latitude,
+          longitude: json.profile.longitude,
+          formattedAddress: json.profile.formatted_address || ""
+        });
+      } else {
+        setLocation(null);
+      }
 
       setLoading(false);
     } catch (error: any) {
@@ -123,7 +135,11 @@ export default function WorkerProfile() {
         name,
         skills,
         availability,
-        location
+        city: location.city,
+        district: location.district,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        formattedAddress: location.formattedAddress
       });
 
       setProfile(json.profile);
