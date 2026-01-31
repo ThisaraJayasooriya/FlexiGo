@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
 
@@ -17,9 +17,128 @@ interface LocationSelectorProps {
   error?: string;
 }
 
+interface LocationSuggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    state_district?: string;
+    district?: string;
+    county?: string;
+  };
+}
+
 export default function LocationSelector({ location, onChange, error }: LocationSelectorProps) {
   const [loading, setLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Search for location suggestions
+  const searchLocation = async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setSearchLoading(true);
+
+    try {
+      // Search in Sri Lanka only for better results
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)},Sri Lanka&addressdetails=1&limit=5`,
+        {
+          headers: {
+            'User-Agent': 'FlexiGo-App/1.0'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestions(data);
+        setShowSuggestions(data.length > 0);
+      }
+    } catch (err) {
+      console.error("Location search error:", err);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Handle city input change with debouncing
+  const handleCityInput = (value: string) => {
+    onChange({
+      city: value,
+      district: location?.district || "",
+      latitude: location?.latitude || 0,
+      longitude: location?.longitude || 0,
+      formattedAddress: location?.formattedAddress,
+    });
+
+    // Debounce search
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocation(value);
+    }, 500);
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
+    const address = suggestion.address || {};
+    
+    // Extract city
+    const city = 
+      address.city || 
+      address.town || 
+      address.village || 
+      "";
+
+    // Extract district and clean it
+    let district = 
+      address.state_district || 
+      address.district ||
+      address.county || 
+      "";
+    
+    if (district && district.toLowerCase().includes("district")) {
+      district = district.replace(/\s*district\s*/i, "").trim();
+    }
+
+    const locationData: LocationData = {
+      city,
+      district,
+      latitude: parseFloat(suggestion.lat),
+      longitude: parseFloat(suggestion.lon),
+      formattedAddress: suggestion.display_name,
+    };
+
+    onChange(locationData);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
 
   const handleGetCurrentLocation = async () => {
     setLoading(true);
@@ -198,30 +317,81 @@ export default function LocationSelector({ location, onChange, error }: Location
 
       {/* Manual Location Input */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+        <div className="relative" ref={suggestionsRef}>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             City / Town
           </label>
-          <Input
-            type="text"
-            value={location?.city || ""}
-            onChange={(e) => handleManualChange("city", e.target.value)}
-            placeholder="e.g., Colombo"
-            className="w-full"
-          />
+          <div className="relative">
+            <Input
+              type="text"
+              value={location?.city || ""}
+              onChange={(e) => handleCityInput(e.target.value)}
+              placeholder="e.g., Colombo"
+              className="w-full"
+              autoComplete="off"
+            />
+            {searchLoading && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <svg className="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* Suggestions Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {suggestions.map((suggestion, index) => {
+                const address = suggestion.address || {};
+                const cityName = address.city || address.town || address.village || "";
+                const districtName = (address.state_district || address.district || address.county || "").replace(/\s*district\s*/i, "").trim();
+                
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleSuggestionSelect(suggestion)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{cityName}</div>
+                        {districtName && (
+                          <div className="text-xs text-gray-500 truncate">{districtName}</div>
+                        )}
+                        <div className="text-xs text-gray-400 truncate mt-0.5">{suggestion.display_name}</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            District / Province
+            District
           </label>
           <Input
             type="text"
             value={location?.district || ""}
             onChange={(e) => handleManualChange("district", e.target.value)}
-            placeholder="e.g., Western Province"
+            placeholder="e.g., Colombo"
             className="w-full"
+            readOnly={location?.latitude !== undefined && location?.latitude !== 0}
           />
+          {location?.latitude !== undefined && location?.latitude !== 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              Auto-filled from selected location
+            </p>
+          )}
         </div>
       </div>
 
