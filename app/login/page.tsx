@@ -1,19 +1,33 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AuthForm from "@/app/components/AuthForm";
 import Toast from "@/app/components/ui/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
+  const [toast, setToast] = useState<{ type: "error" | "success" | "info"; message: string } | null>(null);
+
+  // Check for logout message
+  useEffect(() => {
+    const logoutMessage = sessionStorage.getItem('logout_message');
+    if (logoutMessage) {
+      setToast({ type: "info", message: logoutMessage });
+      sessionStorage.removeItem('logout_message');
+    }
+  }, []);
 
   const handleLoginSuccess = async (json: any) => {
     // Backend returns { session: { access_token, refresh_token, user } }
     if (json?.session?.access_token) {
       const token = json.session.access_token;
+      const refreshToken = json.session.refresh_token;
+      
       localStorage.setItem("access_token", token);
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+      }
       
       // Set cookie for middleware
       document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;

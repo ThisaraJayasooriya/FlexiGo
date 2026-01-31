@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
+import AuthInitializer from "./components/AuthInitializer";
 
 export const metadata = {
   title: "FlexiGo",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-[#F8F9FA] text-[#124E66]">
         <ServiceWorkerRegistration />
+        <AuthInitializer />
         {children}
       </body>
     </html>
