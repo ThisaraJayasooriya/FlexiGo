@@ -7,6 +7,7 @@ import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
 import LocationSelector from "@/app/components/LocationSelector";
 import type { WorkerLocation } from "@/types/location";
+import { apiClient } from "@/lib/api-client";
 
 export default function CreateWorkerProfile() {
   const router = useRouter();
@@ -49,23 +50,11 @@ export default function CreateWorkerProfile() {
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
-      const res = await fetch("/api/workers/profile/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          skills: formData.skills,
-          availability: formData.availability,
-          location: location,
-        }),
+      const res = await apiClient.post("/api/workers/profile/create", {
+        name: formData.name,
+        skills: formData.skills,
+        availability: formData.availability,
+        location: location,
       });
 
       const json = await res.json();
@@ -82,11 +71,6 @@ export default function CreateWorkerProfile() {
           }
         }
         throw new Error(json?.error || "Failed to create profile");
-      }
-
-      // Update cookie with fresh token
-      if (token) {
-        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
       }
 
       setToast({

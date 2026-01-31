@@ -8,6 +8,7 @@ import Toast from "@/app/components/ui/Toast";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import SkillSelector from "@/app/components/SkillSelector";
+import { apiClient } from "@/lib/api-client";
 
 export default function CreateJobPage() {
   const router = useRouter();
@@ -30,10 +31,7 @@ export default function CreateJobPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("/api/businesses/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await apiClient.get("/api/businesses/profile");
         const json = await res.json();
         if (res.ok && json.profile) {
           setProfileName(json.profile.company_name || "");
@@ -91,26 +89,14 @@ export default function CreateJobPage() {
     setSkillError("");
 
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
-      const res = await fetch("/api/jobs/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          date: formData.date,
-          time: formData.time,
-          venue: formData.venue,
-          payRate: parseFloat(formData.payRate),
-          requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
-          workerCount: parseInt(formData.workerCount),
-        }),
+      const res = await apiClient.post("/api/jobs/create", {
+        title: formData.title,
+        date: formData.date,
+        time: formData.time,
+        venue: formData.venue,
+        payRate: parseFloat(formData.payRate),
+        requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
+        workerCount: parseInt(formData.workerCount),
       });
 
       const json = await res.json();

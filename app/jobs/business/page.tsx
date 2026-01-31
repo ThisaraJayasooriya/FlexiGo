@@ -5,6 +5,7 @@ import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
+import { apiClient } from "@/lib/api-client";
 
 interface Job {
   id: string;
@@ -72,12 +73,8 @@ export default function BusinessJobsPage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/businesses/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (res.ok && json.profile) {
+      const json = await apiClient.get("/api/businesses/profile");
+      if (json.profile) {
         setProfileName(json.profile.company_name || "");
         setProfileImage(json.profile.logo_url || "");
       }
@@ -88,21 +85,7 @@ export default function BusinessJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const res = await fetch("/api/jobs/business", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch jobs");
-
+      const json = await apiClient.get("/api/jobs/business");
       setJobs(json.jobs || []);
     } catch (error: any) {
       setToast({

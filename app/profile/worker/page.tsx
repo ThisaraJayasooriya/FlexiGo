@@ -9,6 +9,7 @@ import LocationSelector from "@/app/components/LocationSelector";
 import { getInitials } from "@/lib/utils";
 import { getCategoryForSkill } from "@/lib/skills/skillCategories";
 import type { WorkerLocation } from "@/types/location";
+import { apiClient } from "@/lib/api-client";
 
 export default function WorkerProfile() {
   const router = useRouter();
@@ -67,17 +68,9 @@ export default function WorkerProfile() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const res = await fetch("/api/workers/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
+      const res = await apiClient.get("/api/workers/profile");
       const json = await res.json();
+      
       if (!res.ok) throw new Error(json?.error || "Failed to fetch profile");
 
       // If no profile exists, redirect to profile creation
@@ -129,21 +122,11 @@ export default function WorkerProfile() {
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
-      const res = await fetch("/api/workers/profile", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,
-          skills,
-          availability,
-          location
-        })
+      const res = await apiClient.put("/api/workers/profile", {
+        name,
+        skills,
+        availability,
+        location
       });
 
       const json = await res.json();

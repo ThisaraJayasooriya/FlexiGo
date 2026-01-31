@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/api-client";
 
 export default function ProfileRouter() {
   const router = useRouter();
@@ -12,17 +13,9 @@ export default function ProfileRouter() {
 
   const checkUserRole = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const res = await fetch("/api/check", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
+      const res = await apiClient.get("/api/check");
       const json = await res.json();
+      
       if (!res.ok) throw new Error(json?.error || "Failed to check user role");
 
       // Route to appropriate profile page
