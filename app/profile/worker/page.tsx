@@ -68,10 +68,7 @@ export default function WorkerProfile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await apiClient.get("/api/workers/profile");
-      const json = await res.json();
-      
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch profile");
+      const json = await apiClient.get("/api/workers/profile");
 
       // If no profile exists, redirect to profile creation
       if (!json.profile) {
@@ -122,24 +119,12 @@ export default function WorkerProfile() {
     }
 
     try {
-      const res = await apiClient.put("/api/workers/profile", {
+      const json = await apiClient.put("/api/workers/profile", {
         name,
         skills,
         availability,
         location
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to update profile");
-      }
 
       setProfile(json.profile);
       setEditing(false);

@@ -71,10 +71,7 @@ export default function BusinessProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const res = await apiClient.get("/api/businesses/profile");
-      const json = await res.json();
-      
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch profile");
+      const json = await apiClient.get("/api/businesses/profile");
 
       // If no profile exists, redirect to profile creation
       if (!json.profile) {

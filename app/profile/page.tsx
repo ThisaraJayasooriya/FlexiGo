@@ -13,10 +13,7 @@ export default function ProfileRouter() {
 
   const checkUserRole = async () => {
     try {
-      const res = await apiClient.get("/api/check");
-      const json = await res.json();
-      
-      if (!res.ok) throw new Error(json?.error || "Failed to check user role");
+      const json = await apiClient.get("/api/check");
 
       // Route to appropriate profile page
       if (json.role === "business") {

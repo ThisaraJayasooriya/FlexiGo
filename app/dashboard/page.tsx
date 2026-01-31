@@ -15,7 +15,6 @@ export default function Dashboard() {
   useEffect(() => {
     // Fetch user role
     apiClient.get("/api/check")
-      .then((res) => res.json())
       .then((data) => {
         setUserRole(data.role);
         setUserName(data.email?.split("@")[0] || "User");

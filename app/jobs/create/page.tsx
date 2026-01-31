@@ -31,9 +31,8 @@ export default function CreateJobPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await apiClient.get("/api/businesses/profile");
-        const json = await res.json();
-        if (res.ok && json.profile) {
+        const json = await apiClient.get("/api/businesses/profile");
+        if (json.profile) {
           setProfileName(json.profile.company_name || "");
           setProfileImage(json.profile.logo_url || "");
         }
@@ -89,7 +88,7 @@ export default function CreateJobPage() {
     setSkillError("");
 
     try {
-      const res = await apiClient.post("/api/jobs/create", {
+      const json = await apiClient.post("/api/jobs/create", {
         title: formData.title,
         date: formData.date,
         time: formData.time,
@@ -98,18 +97,6 @@ export default function CreateJobPage() {
         requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
         workerCount: parseInt(formData.workerCount),
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "requiredSkills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to create job");
-      }
 
       setToast({
         type: "success",
