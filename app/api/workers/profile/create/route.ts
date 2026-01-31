@@ -45,7 +45,13 @@ export async function POST(req: Request) {
     // Upsert worker profile using admin client to bypass RLS
     const { data, error } = await supabaseAdmin
       .from("worker_profiles")
-      .upsert({ user_id, ...validation.data }, { onConflict: "user_id" })
+      .upsert({ 
+        user_id, 
+        name: validation.data.name,
+        skills: validation.data.skills,
+        availability: validation.data.availability,
+        location: validation.data.location
+      }, { onConflict: "user_id" })
       .select(); // returns array, do NOT use .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });

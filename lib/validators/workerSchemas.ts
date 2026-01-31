@@ -2,6 +2,15 @@
 import { z } from "zod";
 import { ALL_VALID_SKILLS, MAX_SKILLS } from "@/lib/skills/skillCategories";
 
+// Location schema
+const locationSchema = z.object({
+  city: z.string().min(2, "City is required"),
+  district: z.string().min(2, "District is required"),
+  latitude: z.number().min(-90).max(90, "Invalid latitude"),
+  longitude: z.number().min(-180).max(180, "Invalid longitude"),
+  formattedAddress: z.string().optional(),
+});
+
 // Worker profile creation schema
 export const createWorkerProfileSchema = z.object({
   name: z
@@ -33,6 +42,8 @@ export const createWorkerProfileSchema = z.object({
   availability: z.enum(["Weekdays", "Weekends", "Full-time", "Flexible"], {
     message: "Please select a valid availability option",
   }),
+
+  location: locationSchema,
 });
 
 // Worker profile update schema (allows partial updates)

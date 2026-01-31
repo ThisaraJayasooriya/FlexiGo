@@ -5,6 +5,8 @@ import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
+import LocationSelector from "@/app/components/LocationSelector";
+import type { WorkerLocation } from "@/types/location";
 
 export default function CreateWorkerProfile() {
   const router = useRouter();
@@ -13,19 +15,35 @@ export default function CreateWorkerProfile() {
     skills: [] as string[],
     availability: "",
   });
+  const [location, setLocation] = useState<WorkerLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [skillError, setSkillError] = useState<string>("");
+  const [locationError, setLocationError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setToast(null);
     setSkillError("");
+    setLocationError("");
 
     // Validate skills
     if (formData.skills.length === 0) {
       setSkillError("Please select at least one skill");
+      setLoading(false);
+      return;
+    }
+
+    // Validate location
+    if (!location || !location.city || !location.district) {
+      setLocationError("Please provide your location");
+      setLoading(false);
+      return;
+    }
+
+    if (!location.latitude || !location.longitude) {
+      setLocationError("Please use 'Get Current Location' or ensure coordinates are detected");
       setLoading(false);
       return;
     }
@@ -46,6 +64,7 @@ export default function CreateWorkerProfile() {
           name: formData.name,
           skills: formData.skills,
           availability: formData.availability,
+          location: location,
         }),
       });
 
@@ -56,6 +75,10 @@ export default function CreateWorkerProfile() {
           const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
           if (skillErrorDetail) {
             setSkillError(skillErrorDetail.message);
+          }
+          const locationErrorDetail = json.details.find((d: any) => d.field.startsWith("location"));
+          if (locationErrorDetail) {
+            setLocationError(locationErrorDetail.message);
           }
         }
         throw new Error(json?.error || "Failed to create profile");
@@ -168,6 +191,18 @@ export default function CreateWorkerProfile() {
                 <option value="Flexible">Flexible</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">When are you typically available to work?</p>
+            </div>
+
+            {/* Location */}
+            <div>
+              <LocationSelector
+                location={location}
+                onChange={(newLocation) => {
+                  setLocation(newLocation);
+                  setLocationError("");
+                }}
+                error={locationError}
+              />
             </div>
 
             {/* Submit Button */}

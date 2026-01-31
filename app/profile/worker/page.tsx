@@ -5,8 +5,10 @@ import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
+import LocationSelector from "@/app/components/LocationSelector";
 import { getInitials } from "@/lib/utils";
 import { getCategoryForSkill } from "@/lib/skills/skillCategories";
+import type { WorkerLocation } from "@/types/location";
 
 export default function WorkerProfile() {
   const router = useRouter();
@@ -23,6 +25,8 @@ export default function WorkerProfile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [skillError, setSkillError] = useState<string>("");
   const [availability, setAvailability] = useState("");
+  const [location, setLocation] = useState<WorkerLocation | null>(null);
+  const [locationError, setLocationError] = useState<string>("");
 
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
 
@@ -89,6 +93,7 @@ export default function WorkerProfile() {
       setName(json.profile.name || "");
       setSkills(json.profile.skills || []);
       setAvailability(json.profile.availability || "");
+      setLocation(json.profile.location || null);
 
       setLoading(false);
     } catch (error: any) {
@@ -107,10 +112,18 @@ export default function WorkerProfile() {
     setSaving(true);
     setToast(null);
     setSkillError("");
+    setLocationError("");
 
     // Validate skills
     if (skills.length === 0) {
       setSkillError("Please select at least one skill");
+      setSaving(false);
+      return;
+    }
+
+    // Validate location
+    if (!location || !location.city || !location.district) {
+      setLocationError("Please provide your location");
       setSaving(false);
       return;
     }
@@ -128,7 +141,8 @@ export default function WorkerProfile() {
         body: JSON.stringify({
           name,
           skills,
-          availability
+          availability,
+          location
         })
       });
 
@@ -234,6 +248,15 @@ export default function WorkerProfile() {
                       {profile.availability}
                     </span>
                   )}
+                  {profile?.location && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {profile.location.city}, {profile.location.district}
+                    </span>
+                  )}
                   {profile?.skills && profile.skills.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#3F72AF] rounded-full text-xs font-semibold">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,6 +337,18 @@ export default function WorkerProfile() {
                   <option value="weekends">Weekends Only</option>
                   <option value="flexible">Flexible</option>
                 </select>
+              </div>
+
+              {/* Location */}
+              <div>
+                <LocationSelector
+                  location={location}
+                  onChange={(newLocation) => {
+                    setLocation(newLocation);
+                    setLocationError("");
+                  }}
+                  error={locationError}
+                />
               </div>
 
               {/* Save Button */}
