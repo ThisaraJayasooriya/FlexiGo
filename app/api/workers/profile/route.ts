@@ -73,10 +73,17 @@ export async function PUT(req: Request) {
       );
     }
 
+    // Map formattedAddress to formatted_address for database
+    const updateData: any = { ...validation.data };
+    if (updateData.formattedAddress !== undefined) {
+      updateData.formatted_address = updateData.formattedAddress;
+      delete updateData.formattedAddress;
+    }
+
     // Update worker profile with validated data
     const { data, error } = await supabaseAdmin
       .from("worker_profiles")
-      .update(validation.data)
+      .update(updateData)
       .eq("user_id", user_id)
       .select()
       .single();
