@@ -5,6 +5,9 @@ import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
+import LocationSelector from "@/app/components/LocationSelector";
+import type { WorkerLocation } from "@/types/location";
+import { apiClient } from "@/lib/api-client";
 
 export default function CreateWorkerProfile() {
   const router = useRouter();
@@ -13,15 +16,18 @@ export default function CreateWorkerProfile() {
     skills: [] as string[],
     availability: "",
   });
+  const [location, setLocation] = useState<WorkerLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [skillError, setSkillError] = useState<string>("");
+  const [locationError, setLocationError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setToast(null);
     setSkillError("");
+    setLocationError("");
 
     // Validate skills
     if (formData.skills.length === 0) {
@@ -30,41 +36,30 @@ export default function CreateWorkerProfile() {
       return;
     }
 
+    // Validate location
+    if (!location || !location.city || !location.district) {
+      setLocationError("Please provide your location");
+      setLoading(false);
+      return;
+    }
+
+    if (!location.latitude || !location.longitude) {
+      setLocationError("Please use 'Get Current Location' or ensure coordinates are detected");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
-      const res = await fetch("/api/workers/profile/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          skills: formData.skills,
-          availability: formData.availability,
-        }),
+      const json = await apiClient.post("/api/workers/profile/create", {
+        name: formData.name,
+        skills: formData.skills,
+        availability: formData.availability,
+        city: location.city,
+        district: location.district,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        formattedAddress: location.formattedAddress,
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to create profile");
-      }
-
-      // Update cookie with fresh token
-      if (token) {
-        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
-      }
 
       setToast({
         type: "success",
@@ -75,6 +70,21 @@ export default function CreateWorkerProfile() {
         router.push("/dashboard");
       }, 1500);
     } catch (error: any) {
+      // Handle validation errors from backend
+      if (error.message.includes("Validation failed") && error.details) {
+        const skillErrorDetail = error.details.find((d: any) => d.field === "skills");
+        if (skillErrorDetail) {
+          setSkillError(skillErrorDetail.message);
+        }
+        const locationErrorDetail = error.details.find((d: any) => 
+          d.field === "city" || d.field === "district" || 
+          d.field === "latitude" || d.field === "longitude"
+        );
+        if (locationErrorDetail) {
+          setLocationError(locationErrorDetail.message);
+        }
+      }
+      
       setToast({
         type: "error",
         message: error.message || "Failed to create profile",
@@ -168,6 +178,18 @@ export default function CreateWorkerProfile() {
                 <option value="Flexible">Flexible</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">When are you typically available to work?</p>
+            </div>
+
+            {/* Location */}
+            <div>
+              <LocationSelector
+                location={location}
+                onChange={(newLocation) => {
+                  setLocation(newLocation);
+                  setLocationError("");
+                }}
+                error={locationError}
+              />
             </div>
 
             {/* Submit Button */}

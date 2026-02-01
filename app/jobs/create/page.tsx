@@ -8,6 +8,8 @@ import Toast from "@/app/components/ui/Toast";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import SkillSelector from "@/app/components/SkillSelector";
+import VenueLocationSelector, { VenueLocation } from "@/app/components/VenueLocationSelector";
+import { apiClient } from "@/lib/api-client";
 
 export default function CreateJobPage() {
   const router = useRouter();
@@ -16,12 +18,13 @@ export default function CreateJobPage() {
     title: "",
     date: "",
     time: "",
-    venue: "",
     payRate: "",
     workerCount: "",
   });
+  const [venueLocation, setVenueLocation] = useState<VenueLocation | null>(null);
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [skillError, setSkillError] = useState<string>("");
+  const [venueError, setVenueError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "error" | "success" | "warning"; message: string } | null>(null);
   const [profileName, setProfileName] = useState("");
@@ -30,12 +33,8 @@ export default function CreateJobPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("/api/businesses/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (res.ok && json.profile) {
+        const json = await apiClient.get("/api/businesses/profile");
+        if (json.profile) {
           setProfileName(json.profile.company_name || "");
           setProfileImage(json.profile.logo_url || "");
         }
@@ -89,41 +88,36 @@ export default function CreateJobPage() {
     setLoading(true);
     setToast(null);
     setSkillError("");
+    setVenueError("");
+
+    // Validate venue location
+    if (!venueLocation || !venueLocation.venueName) {
+      setVenueError("Please select a venue location");
+      setLoading(false);
+      return;
+    }
+
+    if (!venueLocation.latitude || !venueLocation.longitude) {
+      setVenueError("Please select a venue with valid coordinates");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
-      const res = await fetch("/api/jobs/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          date: formData.date,
-          time: formData.time,
-          venue: formData.venue,
-          payRate: parseFloat(formData.payRate),
-          requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
-          workerCount: parseInt(formData.workerCount),
-        }),
+      const json = await apiClient.post("/api/jobs/create", {
+        title: formData.title,
+        date: formData.date,
+        time: formData.time,
+        venue: venueLocation.venueName,
+        venueAddress: venueLocation.address,
+        venueCity: venueLocation.city,
+        venueDistrict: venueLocation.district,
+        venueLatitude: venueLocation.latitude,
+        venueLongitude: venueLocation.longitude,
+        payRate: parseFloat(formData.payRate),
+        requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
+        workerCount: parseInt(formData.workerCount),
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "requiredSkills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to create job");
-      }
 
       setToast({
         type: "success",
@@ -226,22 +220,15 @@ export default function CreateJobPage() {
               </div>
             </div>
 
-            {/* Venue */}
+            {/* Venue Location */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Venue
-              </label>
-              <Input
-                type="text"
-                placeholder="e.g., City Convention Center"
-                value={formData.venue}
-                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                required
-                minLength={3}
+              <VenueLocationSelector
+                location={venueLocation}
+                onChange={(loc) => {
+                  setVenueLocation(loc);
+                  setVenueError("");
+                }}
+                error={venueError}
               />
             </div>
 

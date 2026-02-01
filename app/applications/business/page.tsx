@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
+import { apiClient } from "@/lib/api-client";
 
 interface Application {
   id: string;
@@ -76,12 +77,8 @@ export default function BusinessApplicationsPage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/businesses/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (res.ok && json.profile) {
+      const json = await apiClient.get("/api/businesses/profile");
+      if (json.profile) {
         setProfileName(json.profile.company_name || "");
         setProfileImage(json.profile.logo_url || "");
       }
@@ -92,19 +89,7 @@ export default function BusinessApplicationsPage() {
 
   const fetchApplications = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const res = await fetch("/api/applications/business", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch applications");
-
+      const json = await apiClient.get("/api/applications/business");
       setApplications(json.applications || []);
       setLoading(false);
     } catch (error: any) {
@@ -122,19 +107,7 @@ export default function BusinessApplicationsPage() {
   const handleStatusUpdate = async (applicationId: string, status: "accepted" | "rejected") => {
     setProcessing(applicationId);
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/applications/update", {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ applicationId, status })
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to update application");
-
+      const json = await apiClient.patch("/api/applications/update", { applicationId, status });
       setApplications(applications.map(app =>
         app.id === applicationId ? { ...app, status } : app
       ));

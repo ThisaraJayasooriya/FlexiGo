@@ -5,6 +5,7 @@ import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
 import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
+import { apiClient } from "@/lib/api-client";
 
 interface Job {
   id: string;
@@ -76,12 +77,8 @@ export default function WorkerJobsPage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/workers/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (res.ok && json.profile) {
+      const json = await apiClient.get("/api/workers/profile");
+      if (json.profile) {
         setProfileName(json.profile.name || "");
         // Workers don't have profile pictures in the database
         setProfileImage("");
@@ -97,16 +94,7 @@ export default function WorkerJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/jobs/list", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch jobs");
-
+      const json = await apiClient.get("/api/jobs/list");
       setJobs(json.jobs || []);
       setFilteredJobs(json.jobs || []);
     } catch (error: any) {
@@ -160,27 +148,7 @@ export default function WorkerJobsPage() {
 
   const handleApply = async (jobId: string) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        setToast({ type: "error", message: "Please login to apply" });
-        return;
-      }
-
-      const res = await fetch("/api/applications/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ job_id: jobId })
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || "Failed to apply");
-      }
-
+      const json = await apiClient.post("/api/applications/apply", { job_id: jobId });
       setToast({ type: "success", message: "Application submitted successfully!" });
       
       // Update the job in the local state to reflect the applied status

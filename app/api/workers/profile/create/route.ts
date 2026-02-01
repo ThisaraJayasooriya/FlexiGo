@@ -43,12 +43,26 @@ export async function POST(req: Request) {
     const user_id = userData.user.id;
 
     // Upsert worker profile using admin client to bypass RLS
+    // Use separate columns for optimal distance calculation performance
     const { data, error } = await supabaseAdmin
       .from("worker_profiles")
-      .upsert({ user_id, ...validation.data }, { onConflict: "user_id" })
+      .upsert({ 
+        user_id, 
+        name: validation.data.name,
+        skills: validation.data.skills,
+        availability: validation.data.availability,
+        city: validation.data.city,
+        district: validation.data.district,
+        latitude: validation.data.latitude,
+        longitude: validation.data.longitude,
+        formatted_address: validation.data.formattedAddress || null
+      }, { onConflict: "user_id" })
       .select(); // returns array, do NOT use .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) {
+      console.error("Database error:", error);
+      return NextResponse.json({ error: error.message, details: error }, { status: 400 });
+    }
 
     const profile = data?.[0] || null;
 

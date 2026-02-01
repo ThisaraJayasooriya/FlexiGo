@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
+import { apiClient } from "@/lib/api-client";
 
 export default function CreateBusinessProfile() {
   const router = useRouter();
@@ -42,8 +43,6 @@ export default function CreateBusinessProfile() {
 
     try {
       const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
       const formData = new FormData();
       formData.append("company_name", companyName);
       formData.append("description", description);
@@ -72,6 +71,14 @@ export default function CreateBusinessProfile() {
         },
         body: formData
       });
+
+      // Check for token expiration
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        document.cookie = "access_token=; path=/; max-age=0";
+        router.push("/login");
+        return;
+      }
 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to create profile");

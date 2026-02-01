@@ -5,6 +5,7 @@ import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
 import { getInitials } from "@/lib/utils";
+import { apiClient } from "@/lib/api-client";
 
 export default function BusinessProfilePage() {
   const router = useRouter();
@@ -70,18 +71,7 @@ export default function BusinessProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const res = await fetch("/api/businesses/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch profile");
+      const json = await apiClient.get("/api/businesses/profile");
 
       // If no profile exists, redirect to profile creation
       if (!json.profile) {
@@ -142,8 +132,6 @@ export default function BusinessProfilePage() {
 
     try {
       const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
       const formData = new FormData();
       formData.append("company_name", companyName);
       formData.append("description", description);
@@ -164,11 +152,20 @@ export default function BusinessProfilePage() {
       
       if (logo) formData.append("logo", logo);
 
+      // Use fetch for FormData, but handle 401 manually
       const res = await fetch("/api/businesses/profile", {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
+
+      // Check for token expiration
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        document.cookie = "access_token=; path=/; max-age=0";
+        router.push("/login");
+        return;
+      }
 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to update profile");

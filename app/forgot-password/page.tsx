@@ -46,11 +46,13 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] flex items-center justify-center p-5 sm:p-6 font-sans antialiased relative overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] relative overflow-hidden font-sans antialiased flex items-center justify-center p-5 sm:p-6">
+      {/* Decorative Background Elements - Matching Login Page */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#3F72AF]/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-[#DBE2EF]/10 to-transparent rounded-full blur-2xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-[#3F72AF]/5 rounded-full blur-2xl"></div>
       </div>
 
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
@@ -64,22 +66,26 @@ export default function ForgotPasswordPage() {
           Back to login
         </Link>
 
-        {/* Main Card */}
-        <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-10 rounded-4xl shadow-2xl border border-white/20">
-          {!emailSent ? (
-            <>
-              {/* Header */}
-              <div className="text-center mb-10">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] mb-5 shadow-lg">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
+        {/* Main Card with Glow Effect */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-linear-to-r from-[#3F72AF] to-[#112D4E] rounded-4xl blur-lg opacity-20 group-hover:opacity-30 transition duration-500"></div>
+          <div className="relative bg-white/95 backdrop-blur-xl rounded-4xl shadow-2xl border border-white/40 p-8 sm:p-10 lg:p-12 space-y-8">
+            {!emailSent ? (
+              <>
+                {/* Header */}
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] shadow-xl ring-4 ring-white/50 group-hover:scale-105 transition-transform duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] tracking-tight">Forgot Password?</h2>
+                    <p className="text-sm sm:text-base text-gray-600 font-medium">
+                      No worries! Enter your email and we'll send you reset instructions.
+                    </p>
+                  </div>
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#112D4E] mb-3 tracking-tight">Forgot Password?</h2>
-                <p className="text-sm sm:text-base text-gray-600 font-medium">
-                  No worries! Enter your email and we'll send you reset instructions.
-                </p>
-              </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -122,14 +128,18 @@ export default function ForgotPasswordPage() {
                 </Button>
               </form>
 
-              {/* Help Link */}
-              <div className="mt-6 text-center">
-                <Link href="/login" className="text-sm text-gray-600 font-medium">
-                  Remember your password? <span className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">Sign in</span>
-                </Link>
-              </div>
-            </>
-          ) : (
+                {/* Help Link */}
+                <div className="mt-6 text-center">
+                  <Link href="/login" className="group/link inline-flex items-center gap-1 text-sm text-gray-600 font-medium hover:gap-2 transition-all duration-200">
+                    <span>Remember your password?</span>
+                    <span className="text-[#3F72AF] font-bold hover:text-[#112D4E] transition-colors">Sign in</span>
+                    <svg className="w-3 h-3 text-[#3F72AF] opacity-0 group-hover/link:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              </>
+            ) : (
             <>
               {/* Success State */}
               <div className="text-center py-4">
@@ -179,12 +189,14 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
             </>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-600 font-semibold mt-6">
-          Having trouble? Contact our support team
+        {/* Terms */}
+        <p className="text-center text-xs text-gray-500 font-medium mt-6">
+          Having trouble?{" "}
+          <span className="text-[#3F72AF] hover:text-[#112D4E] cursor-pointer transition-colors">Contact our support team</span>
         </p>
       </div>
     </main>

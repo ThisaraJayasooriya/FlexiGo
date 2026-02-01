@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../components/Header";
 import BottomNav, { NavItem } from "../components/BottomNav";
+import { apiClient } from "@/lib/api-client";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -12,19 +13,8 @@ export default function Dashboard() {
   const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-    // Set cookie for middleware
-    document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
-    
     // Fetch user role
-    fetch("/api/check", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
+    apiClient.get("/api/check")
       .then((data) => {
         setUserRole(data.role);
         setUserName(data.email?.split("@")[0] || "User");
@@ -72,12 +62,8 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("/api/businesses/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (res.ok && json.profile) {
+        const json = await apiClient.get("/api/businesses/profile");
+        if (json.profile) {
           setProfileName(json.profile.company_name || userName);
           setProfileImage(json.profile.logo_url || "");
         }
@@ -255,12 +241,8 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("/api/workers/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (res.ok && json.profile) {
+        const json = await apiClient.get("/api/workers/profile");
+        if (json.profile) {
           setProfileName(json.profile.name || userName);
           setProfileImage(""); // Worker profiles don't have profile pictures yet
         }

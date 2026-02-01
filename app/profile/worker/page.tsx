@@ -5,8 +5,11 @@ import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
+import LocationSelector from "@/app/components/LocationSelector";
 import { getInitials } from "@/lib/utils";
 import { getCategoryForSkill } from "@/lib/skills/skillCategories";
+import type { WorkerLocation } from "@/types/location";
+import { apiClient } from "@/lib/api-client";
 
 export default function WorkerProfile() {
   const router = useRouter();
@@ -23,6 +26,8 @@ export default function WorkerProfile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [skillError, setSkillError] = useState<string>("");
   const [availability, setAvailability] = useState("");
+  const [location, setLocation] = useState<WorkerLocation | null>(null);
+  const [locationError, setLocationError] = useState<string>("");
 
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
 
@@ -63,18 +68,7 @@ export default function WorkerProfile() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const res = await fetch("/api/workers/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch profile");
+      const json = await apiClient.get("/api/workers/profile");
 
       // If no profile exists, redirect to profile creation
       if (!json.profile) {
@@ -89,6 +83,19 @@ export default function WorkerProfile() {
       setName(json.profile.name || "");
       setSkills(json.profile.skills || []);
       setAvailability(json.profile.availability || "");
+      
+      // Reconstruct location object from separate columns
+      if (json.profile.latitude && json.profile.longitude) {
+        setLocation({
+          city: json.profile.city || "",
+          district: json.profile.district || "",
+          latitude: json.profile.latitude,
+          longitude: json.profile.longitude,
+          formattedAddress: json.profile.formatted_address || ""
+        });
+      } else {
+        setLocation(null);
+      }
 
       setLoading(false);
     } catch (error: any) {
@@ -107,6 +114,7 @@ export default function WorkerProfile() {
     setSaving(true);
     setToast(null);
     setSkillError("");
+    setLocationError("");
 
     // Validate skills
     if (skills.length === 0) {
@@ -115,34 +123,24 @@ export default function WorkerProfile() {
       return;
     }
 
+    // Validate location
+    if (!location || !location.city || !location.district) {
+      setLocationError("Please provide your location");
+      setSaving(false);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
-      const res = await fetch("/api/workers/profile", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,
-          skills,
-          availability
-        })
+      const json = await apiClient.put("/api/workers/profile", {
+        name,
+        skills,
+        availability,
+        city: location.city,
+        district: location.district,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        formattedAddress: location.formattedAddress
       });
-
-      const json = await res.json();
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (json.details) {
-          const skillErrorDetail = json.details.find((d: any) => d.field === "skills");
-          if (skillErrorDetail) {
-            setSkillError(skillErrorDetail.message);
-          }
-        }
-        throw new Error(json?.error || "Failed to update profile");
-      }
 
       setProfile(json.profile);
       setEditing(false);
@@ -234,6 +232,15 @@ export default function WorkerProfile() {
                       {profile.availability}
                     </span>
                   )}
+                  {profile?.location && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {profile.location.city}, {profile.location.district}
+                    </span>
+                  )}
                   {profile?.skills && profile.skills.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#3F72AF] rounded-full text-xs font-semibold">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,6 +321,18 @@ export default function WorkerProfile() {
                   <option value="weekends">Weekends Only</option>
                   <option value="flexible">Flexible</option>
                 </select>
+              </div>
+
+              {/* Location */}
+              <div>
+                <LocationSelector
+                  location={location}
+                  onChange={(newLocation) => {
+                    setLocation(newLocation);
+                    setLocationError("");
+                  }}
+                  error={locationError}
+                />
               </div>
 
               {/* Save Button */}

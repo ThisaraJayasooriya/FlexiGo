@@ -7,6 +7,11 @@ export const createJobSchema = z.object({
   date: z.string(), // ISO date
   time: z.string(), // HH:mm
   venue: z.string().min(3, "Venue must be at least 3 characters"),
+  venueAddress: z.string(),
+  venueCity: z.string(),
+  venueDistrict: z.string(),
+  venueLatitude: z.number().min(-90).max(90, "Invalid latitude"),
+  venueLongitude: z.number().min(-180).max(180, "Invalid longitude"),
   payRate: z.number().min(0, "Pay rate must be a positive number"),
   requiredSkills: z
     .array(z.string())
