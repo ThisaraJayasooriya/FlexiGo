@@ -34,6 +34,7 @@ export async function GET(req: Request) {
         title,
         date,
         time,
+        working_hours,
         venue,
         pay_rate,
         required_skills,

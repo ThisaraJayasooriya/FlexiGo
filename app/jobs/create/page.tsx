@@ -18,6 +18,7 @@ export default function CreateJobPage() {
     title: "",
     date: "",
     time: "",
+    workingHours: "",
     payRate: "",
     workerCount: "",
   });
@@ -108,6 +109,7 @@ export default function CreateJobPage() {
         title: formData.title,
         date: formData.date,
         time: formData.time,
+        workingHours: formData.workingHours,
         venue: venueLocation.venueName,
         venueAddress: venueLocation.address,
         venueCity: venueLocation.city,
@@ -218,6 +220,24 @@ export default function CreateJobPage() {
                   required
                 />
               </div>
+            </div>
+
+            {/* Working Hours */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Working Hours
+              </label>
+              <Input
+                type="text"
+                placeholder="8 hours"
+                value={formData.workingHours}
+                onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
+                required
+                minLength={1}
+              />
             </div>
 
             {/* Venue Location */}

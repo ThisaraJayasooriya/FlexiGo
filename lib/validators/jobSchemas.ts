@@ -33,6 +33,7 @@ export const createJobSchema = z.object({
     )
     .optional(),
   workerCount: z.number().min(1, "At least 1 worker is required"),
+  workingHours: z.string().min(1, "Working hours are required"),
 });
 
 export type CreateJobInput = z.infer<typeof createJobSchema>;
