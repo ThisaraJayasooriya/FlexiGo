@@ -119,8 +119,8 @@ export default function BusinessJobsPage() {
         />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#3F72AF] border-t-transparent mb-4"></div>
-            <p className="text-gray-600 font-semibold">Loading jobs...</p>
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
+            <p className="text-sm text-slate-600 font-medium">Loading jobs...</p>
           </div>
         </div>
         <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
