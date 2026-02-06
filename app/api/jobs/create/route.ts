@@ -52,6 +52,7 @@ export async function POST(req: Request) {
       title: parsed.data.title,
       date: parsed.data.date,
       time: parsed.data.time,
+      working_hours: parsed.data.workingHours,
       venue: parsed.data.venue,
       venue_address: parsed.data.venueAddress,
       venue_city: parsed.data.venueCity,
