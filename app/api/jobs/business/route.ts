@@ -66,8 +66,6 @@ export async function GET(req: Request) {
       application_count: countMap.get(job.id) || 0
     }));
 
-    console.log("Jobs with counts:", jobsWithCounts.map(j => ({ id: j.id, title: j.title, count: j.application_count })));
-
     return NextResponse.json({ jobs: jobsWithCounts });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
