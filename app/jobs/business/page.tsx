@@ -18,6 +18,20 @@ interface Job {
   required_skills: string[];
   number_of_workers: number;
   created_at: string;
+  application_count?: number;
+}
+
+interface Applicant {
+  application_id: string;
+  status: string;
+  applied_at: string;
+  worker_id: string;
+  worker: {
+    user_id: string;
+    name: string;
+    skills: string[];
+    availability: string;
+  } | null;
 }
 
 export default function BusinessJobsPage() {
@@ -28,6 +42,11 @@ export default function BusinessJobsPage() {
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [profileName, setProfileName] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [showApplicantsModal, setShowApplicantsModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [selectedJobTitle, setSelectedJobTitle] = useState("");
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
 
   const businessNavItems: NavItem[] = [
     {
@@ -95,6 +114,69 @@ export default function BusinessJobsPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApplicants = async (jobId: string, jobTitle: string) => {
+    setSelectedJobId(jobId);
+    setSelectedJobTitle(jobTitle);
+    setShowApplicantsModal(true);
+    setLoadingApplicants(true);
+    
+    try {
+      const json = await apiClient.get(`/api/jobs/${jobId}/applicants`);
+      setApplicants(json.applicants || []);
+    } catch (error: any) {
+      setToast({
+        type: "error",
+        message: error.message || "Failed to load applicants",
+      });
+    } finally {
+      setLoadingApplicants(false);
+    }
+  };
+
+  const handleUpdateApplicationStatus = async (applicationId: string, status: "accepted" | "rejected") => {
+    try {
+      await apiClient.patch("/api/applications/update", {
+        applicationId,
+        status,
+      });
+
+      // Update the applicants list locally
+      setApplicants(prev => 
+        prev.map(app => 
+          app.application_id === applicationId 
+            ? { ...app, status } 
+            : app
+        )
+      );
+
+      // Update the job's application count
+      if (selectedJobId) {
+        setJobs(prev => 
+          prev.map(job => {
+            if (job.id === selectedJobId) {
+              const currentCount = job.application_count || 0;
+              return {
+                ...job,
+                application_count: Math.max(0, currentCount)
+              };
+            }
+            return job;
+          })
+        );
+      }
+
+      setToast({
+        type: "success",
+        message: `Application ${status} successfully`,
+      });
+    } catch (error: any) {
+      setToast({
+        type: "error",
+        message: error.message || "Failed to update application",
+      });
     }
   };
 
@@ -245,7 +327,14 @@ export default function BusinessJobsPage() {
                   {/* Job Info */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                        {(job.application_count ?? 0) > 0 && (
+                          <span className="px-2.5 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                            {job.application_count} {job.application_count === 1 ? 'Application' : 'Applications'}
+                          </span>
+                        )}
+                      </div>
                       <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                         Active
                       </span>
@@ -313,11 +402,14 @@ export default function BusinessJobsPage() {
                   
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2">
-                    <button className="flex-1 lg:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                      View Details
-                    </button>
-                    <button className="flex-1 lg:flex-none px-4 py-2 text-sm font-medium text-[#124E66] bg-[#124E66]/10 rounded-lg hover:bg-[#124E66]/20 transition-colors">
-                      Edit
+                    <button 
+                      onClick={() => fetchApplicants(job.id, job.title)}
+                      className="flex-1 lg:flex-none px-4 py-2 text-sm font-medium text-white bg-[#124E66] rounded-lg hover:bg-[#0d3a4d] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      View Applications
                     </button>
                   </div>
                 </div>
@@ -327,6 +419,138 @@ export default function BusinessJobsPage() {
         )}
       </div>
       </main>
+
+      {/* Applicants Modal */}
+      {showApplicantsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-linear-to-r from-[#124E66] to-[#0d3a4d] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Applications</h2>
+                  <p className="text-blue-100 text-sm mt-1">{selectedJobTitle}</p>
+                </div>
+                <button
+                  onClick={() => setShowApplicantsModal(false)}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingApplicants ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
+                    <p className="text-sm text-slate-600 font-medium">Loading applicants...</p>
+                  </div>
+                </div>
+              ) : applicants.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No applications yet</h3>
+                  <p className="text-gray-600">This job hasn't received any applications.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {applicants.map((applicant) => (
+                    <div 
+                      key={applicant.application_id} 
+                      className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        {/* Applicant Info */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">
+                                {applicant.worker?.name || "Unknown Worker"}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Applied {new Date(applicant.applied_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </p>
+                            </div>
+                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                              applicant.status === "accepted" 
+                                ? "bg-green-100 text-green-700"
+                                : applicant.status === "rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                              {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
+                            </span>
+                          </div>
+
+                          {/* Skills */}
+                          {applicant.worker?.skills && applicant.worker.skills.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-xs font-semibold text-gray-600 mb-2">Skills:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {applicant.worker.skills.map((skill, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Availability */}
+                          {applicant.worker?.availability && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <svg className="w-4 h-4 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span>Available: {applicant.worker.availability}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        {applicant.status === "pending" && (
+                          <div className="flex sm:flex-col gap-2">
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(applicant.application_id, "accepted")}
+                              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(applicant.application_id, "rejected")}
+                              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
