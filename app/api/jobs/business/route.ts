@@ -35,6 +35,11 @@ export async function GET(req: Request) {
     if (error)
       return NextResponse.json({ error: error.message }, { status: 400 });
 
+    // If no jobs, return empty array
+    if (!data || data.length === 0) {
+      return NextResponse.json({ jobs: [] });
+    }
+
     // Fetch application counts for all jobs
     const jobIds = data.map(job => job.id);
     
@@ -49,7 +54,7 @@ export async function GET(req: Request) {
 
     // Create a map of job_id to application count
     const countMap = new Map<string, number>();
-    if (applicationCounts) {
+    if (applicationCounts && applicationCounts.length > 0) {
       applicationCounts.forEach(app => {
         countMap.set(app.job_id, (countMap.get(app.job_id) || 0) + 1);
       });
@@ -60,6 +65,8 @@ export async function GET(req: Request) {
       ...job,
       application_count: countMap.get(job.id) || 0
     }));
+
+    console.log("Jobs with counts:", jobsWithCounts.map(j => ({ id: j.id, title: j.title, count: j.application_count })));
 
     return NextResponse.json({ jobs: jobsWithCounts });
   } catch (err: any) {

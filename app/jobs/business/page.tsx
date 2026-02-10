@@ -106,6 +106,7 @@ export default function BusinessJobsPage() {
   const fetchJobs = async () => {
     try {
       const json = await apiClient.get("/api/jobs/business");
+      console.log("Fetched jobs:", json.jobs);
       setJobs(json.jobs || []);
     } catch (error: any) {
       setToast({
