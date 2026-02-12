@@ -63,6 +63,52 @@ export async function PATCH(req: Request) {
       );
     }
 
+    // If accepting an application, check if we've reached the worker limit
+    if (status === "accepted") {
+      // Get the job details
+      const { data: job, error: jobError } = await supabaseAdmin
+        .from("jobs")
+        .select("id, number_of_workers")
+        .eq("id", application.job_id)
+        .single();
+
+      if (jobError || !job) {
+        return NextResponse.json(
+          { error: "Job not found" },
+          { status: 404 }
+        );
+      }
+
+      // Count currently accepted applications
+      const { count, error: countError } = await supabaseAdmin
+        .from("applications")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", application.job_id)
+        .eq("status", "accepted");
+
+      if (countError) {
+        return NextResponse.json(
+          { error: countError.message },
+          { status: 400 }
+        );
+      }
+
+      const currentlyAccepted = count || 0;
+
+      // Check if accepting this application would exceed the limit
+      if (currentlyAccepted >= job.number_of_workers) {
+        return NextResponse.json(
+          {
+            error: "Cannot accept more workers",
+            message: `You have already accepted ${currentlyAccepted} out of ${job.number_of_workers} required workers for this job. You cannot accept more applications.`,
+            acceptedCount: currentlyAccepted,
+            requiredWorkers: job.number_of_workers
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the application status
     const { data, error } = await supabaseAdmin
       .from("applications")
@@ -73,6 +119,35 @@ export async function PATCH(req: Request) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    // If we just accepted an application, include staffing info in response
+    if (status === "accepted") {
+      const { data: job } = await supabaseAdmin
+        .from("jobs")
+        .select("number_of_workers")
+        .eq("id", application.job_id)
+        .single();
+
+      const { count } = await supabaseAdmin
+        .from("applications")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", application.job_id)
+        .eq("status", "accepted");
+
+      const acceptedCount = count || 0;
+      const requiredWorkers = job?.number_of_workers || 0;
+      const remainingSlots = Math.max(0, requiredWorkers - acceptedCount);
+
+      return NextResponse.json({ 
+        application: data,
+        staffingInfo: {
+          acceptedCount,
+          requiredWorkers,
+          remainingSlots,
+          isFullyStaffed: acceptedCount >= requiredWorkers
+        }
+      });
     }
 
     return NextResponse.json({ application: data });
