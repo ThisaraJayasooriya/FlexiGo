@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
@@ -105,9 +104,11 @@ export default function WorkerProfile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie = "access_token=; path=/; max-age=0";
-    router.push("/");
+    if (confirm("Are you sure you want to log out?")) {
+      localStorage.removeItem("access_token");
+      document.cookie = "access_token=; path=/; max-age=0";
+      router.push("/");
+    }
   };
 
   const handleSave = async () => {
@@ -154,273 +155,241 @@ export default function WorkerProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7]">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-          <p className="text-sm text-slate-600 font-medium">Loading profile...</p>
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
+          <p className="text-sm text-slate-500 font-medium">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 relative pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <Header 
-        title="FlexiGo" 
-        subtitle="Worker Portal"
-        userName={profile?.name}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
+      {/* Immersive Hero Section */}
+      <div className="relative bg-gradient-to-br from-[#3F72AF] to-[#112D4E] pb-32 rounded-b-[40px] shadow-2xl overflow-hidden">
+        {/* Decorative Circles */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-white/5 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-white/5 blur-3xl"></div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Enhanced Profile Header with Cover */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6 sm:mb-8">
-          {/* Cover Image/Gradient */}
-          <div className="h-24 sm:h-32 bg-linear-to-r from-[#3F72AF] via-[#5586be] to-[#112D4E] relative">
-            <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
-          </div>
-          
-          {/* Profile Content */}
-          <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-12 sm:-mt-16 mb-4 sm:mb-6">
-              {/* Profile Image - Circular */}
-              <div className="relative">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-linear-to-br from-[#3F72AF] to-[#112D4E] flex items-center justify-center shadow-2xl ring-4 ring-white">
-                  <span className="text-white font-extrabold text-2xl sm:text-4xl">{getInitials(profile?.name || "")}</span>
-                </div>
-              </div>
+        {/* Transparent Navbar */}
+        <div className="relative z-10 px-5 pt-6 pb-4 flex items-center justify-between">
+            <button 
+              onClick={() => router.push('/dashboard')}
+              className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all shadow-lg ring-1 ring-white/20"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-              {/* Profile Info */}
-              <div className="flex-1 pt-2 sm:pt-4 relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-2">
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#112D4E] mb-1">{profile?.name}</h1>
-                    <p className="text-sm sm:text-base text-gray-600 font-medium">{email}</p>
-                  </div>
-                  <button
-                    onClick={() => setEditing(!editing)}
-                    className="self-start sm:self-auto px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm sm:text-base font-bold rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center gap-2"
-                  >
-                    {editing ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Cancel
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit Profile
-                      </>
-                    )}
-                  </button>
-                </div>
-                
-                {/* Quick Info Tags */}
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {profile?.availability && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {profile.availability}
-                    </span>
-                  )}
-                  {profile?.location && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {profile.location.city}, {profile.location.district}
-                    </span>
-                  )}
-                  {profile?.skills && profile.skills.length > 0 && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#3F72AF] rounded-full text-xs font-semibold">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                      {profile.skills.length} Skills
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+             <button 
+                onClick={handleLogout}
+                className="w-10 h-10 bg-white/10 hover:bg-red-500/20 active:bg-red-500/30 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all shadow-lg ring-1 ring-white/20 group"
+             >
+                <svg className="w-5 h-5 group-hover:text-red-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+             </button>
         </div>
 
-        {editing ? (
-          /* Edit Mode */
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-extrabold text-[#112D4E]">Edit Profile</h2>
-                <p className="text-sm text-gray-600 mt-1">Update your worker information</p>
-              </div>
+        {/* Profile Identity */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 mt-2">
+            <div className="relative mb-4">
+               <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#DBE2EF] to-white p-[3px] shadow-2xl">
+                 <div className="w-full h-full rounded-full bg-[#112D4E] flex items-center justify-center overflow-hidden relative">
+                    {/* Placeholder Avatar Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#3F72AF] to-[#112D4E]"></div>
+                    <span className="relative text-white font-extrabold text-4xl">{getInitials(profile?.name || "")}</span>
+                 </div>
+               </div>
+               {/* Edit FAB */}
+               <button
+                  onClick={() => setEditing(!editing)}
+                  className="absolute bottom-1 right-1 w-9 h-9 bg-white text-[#3F72AF] rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                >
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     {editing ? (
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                     ) : (
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                     )}
+                   </svg>
+                </button>
             </div>
             
-            <div className="space-y-6">
-              {/* Name */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2.5">
-                  <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#3F72AF] focus:ring-2 focus:ring-[#3F72AF]/20 transition-all duration-200 text-[#112D4E] font-medium outline-none"
-                  placeholder="Enter your full name"
-                />
+            <h1 className="text-3xl font-bold text-white mb-1 shadow-sm">{profile?.name}</h1>
+            <p className="text-blue-100 font-medium text-sm tracking-wide">{email}</p>
+
+            {/* Quick Stats on Gradient */}
+            {!editing && (
+              <div className="flex items-center gap-4 mt-6">
+                 {profile?.availability && (
+                    <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <span className="text-white text-xs font-bold capitalize">{profile.availability.replace("-", " ")}</span>
+                    </div>
+                 )}
+                 {profile?.location && (
+                    <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-2">
+                        <svg className="w-3.5 h-3.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="text-white text-xs font-bold">{profile.location.city}</span>
+                    </div>
+                 )}
+              </div>
+            )}
+        </div>
+      </div>
+
+      {/* Content Sheet */}
+      <div className="relative z-20 -mt-16 mx-4 bg-white rounded-[32px] shadow-xl p-6 min-h-[400px]">
+         {editing ? (
+           /* Edit Mode - Clean Modern Inputs */
+           <div className="space-y-6 pt-2 animate-fadeIn">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Update Details</h2>
+              
+              <div className="space-y-4">
+                 <div className="group">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800"
+                      placeholder="Jane Doe"
+                    />
+                 </div>
+
+                 <div className="group">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Skills <span className="text-red-400">*</span></label>
+                    <SkillSelector
+                      selectedSkills={skills}
+                      onChange={(newSkills) => {
+                        setSkills(newSkills);
+                        setSkillError("");
+                      }}
+                      maxSkills={10}
+                      error={skillError}
+                    />
+                 </div>
+
+                 <div className="group">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Availability</label>
+                    <div className="relative">
+                       <select
+                        value={availability}
+                        onChange={(e) => setAvailability(e.target.value)}
+                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 appearance-none"
+                      >
+                        <option value="">Select availability</option>
+                        <option value="full-time">Full Time</option>
+                        <option value="part-time">Part Time</option>
+                        <option value="weekends">Weekends Only</option>
+                        <option value="flexible">Flexible</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div className="group">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Location</label>
+                    <LocationSelector
+                      location={location}
+                      onChange={(newLocation) => {
+                        setLocation(newLocation);
+                        setLocationError("");
+                      }}
+                      error={locationError}
+                    />
+                 </div>
               </div>
 
-              {/* Skills */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2.5">
-                  <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
-                  Skills <span className="text-red-500">*</span>
-                </label>
-                <SkillSelector
-                  selectedSkills={skills}
-                  onChange={(newSkills) => {
-                    setSkills(newSkills);
-                    setSkillError("");
-                  }}
-                  maxSkills={10}
-                  error={skillError}
-                />
-              </div>
-
-              {/* Availability */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2.5">
-                  <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Availability
-                </label>
-                <select
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#3F72AF] focus:ring-2 focus:ring-[#3F72AF]/20 transition-all duration-200 text-[#112D4E] font-medium outline-none"
+               <div className="pt-6 flex gap-3">
+                <button
+                   onClick={() => setEditing(false)}
+                   className="flex-1 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition-colors"
                 >
-                  <option value="">Select your availability</option>
-                  <option value="full-time">Full Time</option>
-                  <option value="part-time">Part Time</option>
-                  <option value="weekends">Weekends Only</option>
-                  <option value="flexible">Flexible</option>
-                </select>
-              </div>
-
-              {/* Location */}
-              <div>
-                <LocationSelector
-                  location={location}
-                  onChange={(newLocation) => {
-                    setLocation(newLocation);
-                    setLocationError("");
-                  }}
-                  error={locationError}
-                />
-              </div>
-
-              {/* Save Button */}
-              <div className="pt-4 border-t border-gray-100">
+                   Cancel
+                </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="w-full px-8 py-4 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {saving ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving Changes...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Save Changes
-                    </>
-                  )}
+                  {saving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
-            </div>
-          </div>
-        ) : (
-          /* View Mode */
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100">
-            {/* Skills Section */}
-            {profile?.skills && profile.skills.length > 0 && (
-              <div className="p-4 sm:p-6 lg:p-8 border-b border-gray-100">
-                <h3 className="flex items-center gap-2 text-base sm:text-lg font-bold text-[#112D4E] mb-3 sm:mb-4">
-                  <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
-                  Skills & Expertise
-                </h3>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  {profile.skills.map((skill: string, index: number) => {
-                    const category = getCategoryForSkill(skill);
-                    return (
-                      <span
-                        key={index}
-                        className="inline-flex flex-col px-3 sm:px-4 py-2 sm:py-2.5 bg-linear-to-r from-[#DBE2EF] to-[#3F72AF]/20 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                        title={category || undefined}
-                      >
-                        <span className="text-xs sm:text-sm font-semibold text-[#112D4E] flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          {skill}
-                        </span>
-                        {category && (
-                          <span className="text-[10px] text-gray-500 mt-0.5">
-                            {category}
-                          </span>
-                        )}
-                      </span>
-                    );
-                  })}
-                </div>
+           </div>
+         ) : (
+           /* View Mode - Details */
+           <div className="space-y-8 pt-2">
+              {/* Skills Area */}
+              <div>
+                 <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-900">Expertise</h3>
+                    <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
+                       {profile?.skills?.length || 0} Skills
+                    </span>
+                 </div>
+                 
+                 {profile?.skills && profile.skills.length > 0 ? (
+                   <div className="flex flex-wrap gap-2">
+                      {profile.skills.map((skill: string, index: number) => {
+                         const category = getCategoryForSkill(skill);
+                         return (
+                           <span
+                             key={index}
+                             className="px-4 py-2.5 bg-slate-50 text-slate-700 font-semibold text-sm rounded-xl border border-slate-100"
+                           >
+                              {skill}
+                           </span>
+                         );
+                      })}
+                   </div>
+                 ) : (
+                   <div className="text-center py-8 text-slate-400 text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      No skills added yet. Tap edit to showcase your talent.
+                   </div>
+                 )}
               </div>
-            )}
 
-            {/* Availability Section */}
-            {profile?.availability && (
-              <div className="p-4 sm:p-6 lg:p-8">
-                <h3 className="flex items-center gap-2 text-base sm:text-lg font-bold text-[#112D4E] mb-3 sm:mb-4">
-                  <svg className="w-5 h-5 text-[#3F72AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Availability
-                </h3>
-                <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-50 text-green-700 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {profile.availability.split("-").map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
-                </div>
+              {/* Activity Stats */}
+              <div>
+                 <h3 className="text-lg font-bold text-slate-900 mb-4">Performance</h3>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[#F8FBFF] p-5 rounded-3xl border border-blue-50">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3">
+                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                           </svg>
+                        </div>
+                        <p className="text-3xl font-extrabold text-slate-900">0</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Jobs Done</p>
+                    </div>
+                    
+                    <div className="bg-[#FFFDF5] p-5 rounded-3xl border border-amber-50">
+                        <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-3">
+                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                           </svg>
+                        </div>
+                        <p className="text-3xl font-extrabold text-slate-900">0</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Hours</p>
+                    </div>
+                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </main>
+           </div>
+         )}
+      </div>
 
       <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

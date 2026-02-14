@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
-import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -34,8 +33,6 @@ export default function WorkerApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accepted" | "rejected" | "withdrawn">("all");
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [profileImage, setProfileImage] = useState("");
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   const workerNavItems: NavItem[] = [
@@ -69,32 +66,13 @@ export default function WorkerApplicationsPage() {
     }
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie = "access_token=; path=/; max-age=0";
-    router.push("/");
-  };
-
   useEffect(() => {
     fetchApplications();
-    fetchProfile();
   }, []);
 
   useEffect(() => {
     filterApplications();
   }, [statusFilter, applications]);
-
-  const fetchProfile = async () => {
-    try {
-      const json = await apiClient.get("/api/workers/profile");
-      if (json.profile) {
-        setProfileName(json.profile.name || "");
-        setProfileImage("");
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
 
   const fetchApplications = async () => {
     try {
@@ -156,7 +134,6 @@ export default function WorkerApplicationsPage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
-      year: "numeric",
       month: "short",
       day: "numeric",
     });
@@ -165,48 +142,28 @@ export default function WorkerApplicationsPage() {
   const getStatusConfig = (status: string) => {
     const configs = {
       pending: {
-        bgColor: "bg-amber-50",
-        borderColor: "border-amber-200",
-        textColor: "text-amber-700",
-        iconColor: "text-amber-600",
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
+        bg: "bg-amber-50",
+        text: "text-amber-700",
+        border: "border-amber-200",
+        label: "Pending Review"
       },
       accepted: {
-        bgColor: "bg-green-50",
-        borderColor: "border-green-200",
-        textColor: "text-green-700",
-        iconColor: "text-green-600",
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
+        bg: "bg-emerald-50",
+        text: "text-emerald-700",
+        border: "border-emerald-200",
+        label: "Accepted"
       },
       rejected: {
-        bgColor: "bg-red-50",
-        borderColor: "border-red-200",
-        textColor: "text-red-700",
-        iconColor: "text-red-600",
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
+        bg: "bg-red-50",
+        text: "text-red-700",
+        border: "border-red-200",
+        label: "Not Selected"
       },
       withdrawn: {
-        bgColor: "bg-gray-50",
-        borderColor: "border-gray-300",
-        textColor: "text-gray-700",
-        iconColor: "text-gray-600",
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.415m-1.414-1.415L3 3" />
-          </svg>
-        ),
+        bg: "bg-slate-50",
+        text: "text-slate-500",
+        border: "border-slate-200",
+        label: "Withdrawn"
       },
     };
     return configs[status as keyof typeof configs] || configs.pending;
@@ -214,20 +171,10 @@ export default function WorkerApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
-        <Header
-          title="FlexiGo"
-          subtitle="Worker Portal"
-          userName={profileName}
-          userImage={profileImage}
-          onProfileClick={() => router.push("/profile")}
-          onLogout={handleLogout}
-        />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-            <p className="text-sm text-slate-600 font-medium">Loading applications...</p>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
+          <p className="text-sm text-slate-500 font-medium">Loading applications...</p>
         </div>
         <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
@@ -235,150 +182,92 @@ export default function WorkerApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
-      <Header
-        title="FlexiGo"
-        subtitle="Worker Portal"
-        userName={profileName}
-        userImage={profileImage}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
+      {/* Custom Gradient Header */}
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+        <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+          <div className="flex items-center gap-3 mb-6">
+             <button
+               onClick={() => router.push('/dashboard')}
+               className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+             >
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+               </svg>
+             </button>
+             <div>
+                <h1 className="text-2xl font-bold text-white leading-none">My Applications</h1>
+                <p className="text-xs text-blue-100 font-medium mt-1">Track your status</p>
+             </div>
+          </div>
 
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
-        {/* Page Header */}
-        <header className="bg-white rounded-2xl shadow-sm mb-6">
-          <div className="px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Link href="/dashboard" className="text-gray-600 hover:text-[#124E66] transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </Link>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Applications</h1>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Stats Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{applications.length}</p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Pending</p>
-                <p className="text-xl sm:text-2xl font-bold text-amber-600">
-                  {applications.filter((a) => a.status === "pending").length}
-                </p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Accepted</p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">
-                  {applications.filter((a) => a.status === "accepted").length}
-                </p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Rejected</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-600">
-                  {applications.filter((a) => a.status === "rejected").length}
-                </p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+           {/* Stats Summary */}
+          <div className="grid grid-cols-4 gap-2">
             {[
-              { id: "all", label: "All", count: applications.length },
-              { id: "pending", label: "Pending", count: applications.filter((a) => a.status === "pending").length },
-              { id: "accepted", label: "Accepted", count: applications.filter((a) => a.status === "accepted").length },
-              { id: "rejected", label: "Rejected", count: applications.filter((a) => a.status === "rejected").length },
-              { id: "withdrawn", label: "Withdrawn", count: applications.filter((a) => a.status === "withdrawn").length },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id as any)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-                  statusFilter === tab.id
-                    ? "bg-[#124E66] text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {tab.label} {tab.count > 0 && <span className={statusFilter === tab.id ? "text-blue-200" : "text-gray-400"}>({tab.count})</span>}
-              </button>
+              { label: "Total", count: applications.length, bg: "bg-white/10", text: "text-white" },
+              { label: "Pending", count: applications.filter((a) => a.status === "pending").length, bg: "bg-amber-500/20", text: "text-amber-100" },
+              { label: "Active", count: applications.filter((a) => a.status === "accepted").length, bg: "bg-emerald-500/20", text: "text-emerald-100" },
+              { label: "Rejected", count: applications.filter((a) => a.status === "rejected").length, bg: "bg-red-500/20", text: "text-red-100" },
+            ].map((stat, i) => (
+              <div key={i} className={`rounded-xl p-2.5 backdrop-blur-sm border border-white/5 ${stat.bg}`}>
+                <p className={`text-[10px] uppercase tracking-wider font-bold mb-0.5 ${stat.text} opacity-80`}>{stat.label}</p>
+                <p className={`text-lg font-bold ${stat.text}`}>{stat.count}</p>
+              </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <main className="max-w-md mx-auto px-5 py-6 space-y-6">
+        {/* Filter Tabs */}
+        <div className="flex bg-white/60 p-1.5 rounded-xl overflow-x-auto no-scrollbar gap-1 border border-slate-200/60 sticky top-[152px] z-20 backdrop-blur-md shadow-sm">
+          {[
+            { id: "all", label: "All" },
+            { id: "pending", label: "Pending" },
+            { id: "accepted", label: "Accepted" },
+            { id: "rejected", label: "Rejected" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id as any)}
+              className={`flex-1 min-w-[80px] px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                statusFilter === tab.id
+                  ? "bg-slate-800 text-white shadow-md"
+                  : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Applications List */}
         {filteredApplications.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-bold text-slate-900 mb-1">
               {statusFilter === "all" ? "No applications yet" : `No ${statusFilter} applications`}
             </h3>
-            <p className="text-gray-600 mb-6">
-              {statusFilter === "all" ? "Start applying to jobs to see them here" : "Try selecting a different filter"}
+            <p className="text-sm text-slate-500 max-w-[240px] mb-6">
+               {statusFilter === "all" ? "Start applying to jobs to track them here." : "Try checking other categories."}
             </p>
             {statusFilter === "all" && (
               <Link
                 href="/jobs/worker"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#124E66] text-white rounded-lg hover:bg-[#0d3a4d] transition-colors"
+                className="px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Browse Jobs
+                Find Jobs
               </Link>
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredApplications.map((application) => {
               if (!application.job) return null;
               const statusConfig = getStatusConfig(application.status);
@@ -386,148 +275,54 @@ export default function WorkerApplicationsPage() {
               return (
                 <div
                   key={application.id}
-                  className={`bg-white border-2 ${statusConfig.borderColor} rounded-xl overflow-hidden hover:shadow-lg transition-all`}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
                 >
-                  {/* Status Banner */}
-                  <div className={`${statusConfig.bgColor} border-b ${statusConfig.borderColor} px-4 py-2.5 flex items-center justify-between`}>
-                    <div className="flex items-center gap-2">
-                      <div className={statusConfig.iconColor}>
-                        {statusConfig.icon}
-                      </div>
-                      <span className={`${statusConfig.textColor} text-sm font-bold uppercase tracking-wide`}>
-                        {application.status}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      Applied {new Date(application.applied_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}
-                    </span>
-                  </div>
-
-                  {/* Job Details */}
-                  <div className="p-4">
-                    {/* Title and Company */}
-                    <div className="mb-4">
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">{application.job.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span className="font-medium">{application.job.business_name}</span>
-                      </div>
+                  <div className="p-5">
+                    {/* Header: Status and Date */}
+                    <div className="flex items-center justify-between mb-4">
+                       <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                          {statusConfig.label}
+                       </span>
+                       <span className="text-[10px] font-semibold text-slate-400">
+                         Applied {formatDate(application.applied_at)}
+                       </span>
                     </div>
 
                     {/* Job Info */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0 w-8 h-8 bg-blue-50 rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Date</p>
-                          <p className="text-sm font-semibold text-gray-900 truncate">{formatDate(application.job.date)}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0 w-8 h-8 bg-orange-50 rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Time</p>
-                          <p className="text-sm font-semibold text-gray-900 truncate">{application.job.time}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0 w-8 h-8 bg-purple-50 rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Venue</p>
-                          <p className="text-sm font-semibold text-gray-900 truncate">{application.job.venue}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0 w-8 h-8 bg-green-50 rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Pay Rate</p>
-                          <p className="text-sm font-semibold text-gray-900">LKR {application.job.pay_rate}/hr</p>
-                        </div>
-                      </div>
+                    <div className="mb-4">
+                       <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">{application.job.title}</h3>
+                       <p className="text-xs font-semibold text-slate-500">{application.job.business_name}</p>
                     </div>
 
-                    {/* Skills */}
-                    {application.job.required_skills && application.job.required_skills.length > 0 && (
-                      <div className="mb-4 pb-3 border-b border-gray-100">
-                        <p className="text-xs font-semibold text-gray-600 mb-2">Required Skills</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {application.job.required_skills.map((skill, index) => (
-                            <span
-                              key={index}
-                              className="px-2.5 py-1 bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs rounded-md font-medium"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                       <div className="p-2.5 rounded-xl bg-slate-50">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Pay Rate</p>
+                          <p className="text-sm font-bold text-[#3F72AF]">LKR {application.job.pay_rate}</p>
+                       </div>
+                       <div className="p-2.5 rounded-xl bg-slate-50">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Date</p>
+                          <p className="text-sm font-bold text-slate-700">{formatDate(application.job.date)}</p>
+                       </div>
+                    </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2">
-                      {application.status === "pending" && (
+                    <div>
+                      {application.status === "pending" ? (
                         <button
                           onClick={() => handleWithdraw(application.id)}
                           disabled={withdrawingId === application.id}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                          className="w-full py-3 border border-red-200 text-red-600 rounded-xl text-sm font-bold hover:bg-red-50 active:scale-[0.98] transition-all disabled:opacity-50"
                         >
-                          {withdrawingId === application.id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                              Withdrawing...
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                              Withdraw Application
-                            </>
-                          )}
+                          {withdrawingId === application.id ? "Processing..." : "Withdraw Application"}
                         </button>
-                      )}
-                      {application.status === "accepted" && (
-                        <div className="flex-1 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-center">
-                          <p className="text-sm font-semibold text-green-700">
-                            🎉 Congratulations! You've been selected for this job
-                          </p>
-                        </div>
-                      )}
-                      {application.status === "rejected" && (
-                        <div className="flex-1 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-center">
-                          <p className="text-sm font-medium text-red-700">
-                            Unfortunately, this application was not successful
-                          </p>
-                        </div>
-                      )}
+                      ) : application.status === "accepted" ? (
+                         <div className="w-full py-3 bg-emerald-50 text-emerald-700 rounded-xl text-center text-sm font-bold border border-emerald-100">
+                            Check Dashboard for Schedule
+                         </div>
+                      ) : null}
                     </div>
+
                   </div>
                 </div>
               );
