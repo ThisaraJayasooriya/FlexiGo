@@ -348,7 +348,7 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       <Header 
         title="FlexiGo" 
         subtitle="Worker Portal" 
@@ -359,58 +359,47 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
       />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Welcome Card */}
-        <div className="bg-linear-to-br from-[#3F72AF] to-[#112D4E] rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2">Hey {userName}! 🚀</h2>
-              <p className="text-sm sm:text-base text-white/80 font-medium">Find your next opportunity today</p>
-            </div>
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
+      <main className="max-w-md mx-auto px-5 py-6 space-y-8">
+        {/* Welcome Section */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-3xl p-6 shadow-xl shadow-blue-900/10">
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-white mb-1.5">Hello, {userName.split(' ')[0]}! 👋</h2>
+            <p className="text-blue-100 text-sm font-medium">Ready for your next shift?</p>
           </div>
+          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-20 h-20 bg-blue-400/20 rounded-full blur-xl"></div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Stats Overview */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">Total Jobs</span>
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
             </div>
-            <p className="text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-[#3F72AF] to-[#112D4E]">{stats.total}</p>
+            <span className="text-2xl font-bold text-slate-800 leading-none mb-1">{stats.total}</span>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Jobs</span>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">Upcoming</span>
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <p className="text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-[#3F72AF] to-[#112D4E]">{stats.upcoming}</p>
+            <span className="text-2xl font-bold text-slate-800 leading-none mb-1">{stats.upcoming}</span>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Upcoming</span>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">This Week</span>
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+             <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
-            <p className="text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-[#3F72AF] to-[#112D4E]">{stats.thisWeek}</p>
+            <span className="text-2xl font-bold text-slate-800 leading-none mb-1">{stats.thisWeek}</span>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">This Week</span>
           </div>
         </div>
 
@@ -418,67 +407,69 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => router.push("/jobs/worker")}
-            className="group bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+            className="group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all active:scale-[0.98]"
           >
-            <div className="w-12 h-12 bg-linear-to-br from-[#3F72AF] to-[#112D4E] rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <div className="absolute top-0 right-0 -mr-3 -mt-3 w-16 h-16 bg-blue-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
+            <div className="relative z-10 flex flex-col items-start">
+              <div className="w-10 h-10 bg-blue-100 text-[#112D4E] rounded-xl flex items-center justify-center mb-3">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm">Find Jobs</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Browse available shifts</p>
             </div>
-            <h3 className="font-bold text-[#112D4E] text-sm mb-1">Find Jobs</h3>
-            <p className="text-xs text-gray-600">Browse available shifts</p>
           </button>
 
           <button 
             onClick={() => router.push("/applications/worker")}
-            className="group bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
-            <div className="w-12 h-12 bg-linear-to-br from-[#DBE2EF] to-[#3F72AF]/30 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
-              <svg className="w-6 h-6 text-[#112D4E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+            className="group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all active:scale-[0.98]"
+          >
+             <div className="absolute top-0 right-0 -mr-3 -mt-3 w-16 h-16 bg-purple-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
+            <div className="relative z-10 flex flex-col items-start">
+               <div className="w-10 h-10 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center mb-3">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm">My Applications</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Check status updates</p>
             </div>
-            <h3 className="font-bold text-[#112D4E] text-sm mb-1">My Applications</h3>
-            <p className="text-xs text-gray-600">Track application status</p>
           </button>
         </div>
 
-        {/* Job Schedule Calendar */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/20">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-[#112D4E] flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              My Schedule
-            </h3>
-            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-              {schedules.length} {schedules.length === 1 ? 'Job' : 'Jobs'}
+        {/* My Schedule */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-lg font-bold text-slate-900">My Schedule</h3>
+             <span className="text-xs font-medium text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200 shadow-sm">
+              {schedules.length} Upcoming
             </span>
           </div>
 
           {loading ? (
-            <div className="py-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-slate-200 border-t-slate-900 mb-2"></div>
-              <p className="text-sm text-gray-500">Loading schedule...</p>
+             <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+              <p className="text-sm text-slate-400 font-medium">Loading your schedule...</p>
             </div>
           ) : schedules.length === 0 ? (
-            <div className="py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h4 className="font-bold text-gray-700 mb-2">No Scheduled Jobs Yet</h4>
-              <p className="text-sm text-gray-500 mb-4">Get accepted to jobs to see your schedule here</p>
+              <h4 className="font-bold text-slate-800 mb-1">No shifts yet</h4>
+              <p className="text-sm text-slate-500 mb-6">Apply for jobs to fill your schedule.</p>
               <button
                 onClick={() => router.push("/jobs/worker")}
-                className="px-6 py-2.5 bg-linear-to-br from-[#3F72AF] to-[#112D4E] text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
+                className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition-colors"
               >
                 Browse Jobs
               </button>
             </div>
           ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
+            <div className="space-y-3">
               {schedules.map((schedule) => {
                 const scheduleDate = new Date(schedule.date);
                 const today = new Date();
@@ -490,73 +481,55 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
                   <button
                     key={schedule.id}
                     onClick={() => setSelectedJob(schedule)}
-                    className={`w-full text-left bg-white rounded-xl p-4 border-2 transition-all hover:shadow-md ${
+                    className={`w-full text-left bg-white rounded-2xl p-4 border transition-all active:scale-[0.99] ${
                       isUpcoming 
-                        ? 'border-[#3F72AF]/30 hover:border-[#3F72AF]' 
-                        : 'border-gray-200 opacity-60'
+                        ? 'border-slate-100 shadow-sm hover:shadow-md' 
+                        : 'border-slate-100 opacity-60 bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Date Badge */}
-                      <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center ${
-                        isUpcoming ? 'bg-linear-to-br from-[#3F72AF] to-[#112D4E] text-white' : 'bg-gray-100 text-gray-500'
+                    <div className="flex items-start gap-4">
+                      {/* Date Block */}
+                       <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center border ${
+                        isUpcoming 
+                          ? 'bg-blue-50 border-blue-100 text-blue-700' 
+                          : 'bg-slate-100 border-slate-200 text-slate-500'
                       }`}>
-                        <span className="text-xs font-bold uppercase">
+                         <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
                           {scheduleDate.toLocaleDateString('en-US', { month: 'short' })}
                         </span>
-                        <span className="text-xl font-extrabold">
+                        <span className="text-xl font-bold leading-none">
                           {scheduleDate.getDate()}
                         </span>
                       </div>
 
-                      {/* Job Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-bold text-[#112D4E] truncate">{schedule.title}</h4>
-                          {isPast && (
-                            <span className="shrink-0 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                              Past
-                            </span>
-                          )}
+                      <div className="flex-1 min-w-0 py-0.5">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 text-sm truncate">{schedule.title}</h4>
+                          <span className="shrink-0 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                             LKR {schedule.pay_rate}/hr
+                          </span>
                         </div>
                         
-                        <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span className="truncate">{schedule.business_name}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1.5">
+                          <span className="font-medium text-slate-700 truncate">{schedule.business_name}</span>
                         </div>
 
-                        <div className="flex items-center gap-4 text-xs">
-                          <div className="flex items-center gap-1 text-gray-600">
+                         <div className="flex items-center gap-3 text-xs text-slate-400">
+                          <div className="flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span>{schedule.time}</span>
                           </div>
-                          <div className="flex items-center gap-1 text-gray-600">
+                           <div className="flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span className="truncate">{schedule.venue}</span>
+                            <span className="truncate max-w-[80px] sm:max-w-none">{schedule.venue}</span>
                           </div>
                         </div>
-
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#3F72AF]">
-                            LKR{schedule.pay_rate}/hr
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            • {schedule.working_hours}h shift
-                          </span>
-                        </div>
                       </div>
-
-                      {/* Arrow */}
-                      <svg className="w-5 h-5 text-gray-400 shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
                     </div>
                   </button>
                 );
@@ -566,172 +539,125 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
         </div>
       </main>
 
-      {/* Job Detail Modal */}
+      {/* Improved Job Detail Modal */}
       {selectedJob && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-          onClick={() => setSelectedJob(null)}
+          className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4"
         >
+          {/* Backdrop */}
           <div 
-            className="bg-white w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setSelectedJob(null)}
+          ></div>
+
+          {/* Modal Card */}
+          <div 
+            className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-linear-to-br from-[#3F72AF] to-[#112D4E] text-white p-6 sm:rounded-t-3xl rounded-t-3xl">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-extrabold mb-2">{selectedJob.title}</h3>
-                  <div className="flex items-center gap-2 text-white/90">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span className="font-semibold">{selectedJob.business_name}</span>
-                  </div>
-                </div>
-                <button
+            {/* Header Image/Color */}
+            <div className="relative h-24 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shrink-0">
+               <button
                   onClick={() => setSelectedJob(null)}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                  className="absolute top-4 right-4 w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-md"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-              </div>
-
-              {/* Key Info Pills */}
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {new Date(selectedJob.date).toLocaleDateString('en-US', { 
-                    weekday: 'short',
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </span>
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {selectedJob.time}
-                </span>
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  LKR {selectedJob.pay_rate}/hr
-                </span>
-              </div>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-5">
+            {/* Content Container - Negative margin to pull up over header */}
+            <div className="flex-1 overflow-y-auto -mt-6 rounded-t-3xl bg-white px-6 pt-8 pb-10 relative z-10">
+              
+              {/* Title Section */}
+              <div className="mb-6">
+                <span className="inline-block px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider mb-2">
+                  Confirmed Job
+                </span>
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight mb-1">{selectedJob.title}</h3>
+                <p className="text-slate-500 font-medium">{selectedJob.business_name}</p>
+              </div>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Date</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {new Date(selectedJob.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </p>
+                 </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Time</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedJob.time}</p>
+                 </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Duration</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedJob.working_hours} hrs</p>
+                 </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Pay</p>
+                    <p className="text-sm font-semibold text-emerald-600">LKR {selectedJob.pay_rate}/hr</p>
+                 </div>
+              </div>
+
               {/* Location */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mb-6">
+                 <h4 className="text-sm font-bold text-slate-900 mb-2">Location</h4>
+                 <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-sm text-slate-600">
+                    <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                  </div>
-                  <h4 className="font-bold text-[#112D4E]">Location</h4>
-                </div>
-                <p className="text-gray-700 pl-10">{selectedJob.venue}</p>
+                    <span>{selectedJob.venue}</span>
+                 </div>
               </div>
 
-              {/* Working Hours */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-[#112D4E]">Duration</h4>
-                </div>
-                <p className="text-gray-700 pl-10">{selectedJob.working_hours} hours</p>
-                <p className="text-sm text-gray-500 pl-10 mt-1">
-                  Total Earnings: LKR {(selectedJob.pay_rate * selectedJob.working_hours).toFixed(2)}
-                </p>
-              </div>
-
-              {/* Description */}
-              {selectedJob.description && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <h4 className="font-bold text-[#112D4E]">Description</h4>
-                  </div>
-                  <p className="text-gray-700 pl-10 whitespace-pre-wrap">{selectedJob.description}</p>
+               {/* Description */}
+               {selectedJob.description && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-bold text-slate-900 mb-2">Description</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100 whitespace-pre-wrap">
+                    {selectedJob.description}
+                  </p>
                 </div>
               )}
 
               {/* Required Skills */}
               {selectedJob.required_skills && selectedJob.required_skills.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                    </div>
-                    <h4 className="font-bold text-[#112D4E]">Required Skills</h4>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pl-10">
+                <div className="mb-6">
+                    <h4 className="text-sm font-bold text-slate-900 mb-2">Required Skills</h4>
+                    <div className="flex flex-wrap gap-2">
                     {selectedJob.required_skills.map((skill, index) => (
-                      <span 
+                        <span 
                         key={index}
-                        className="px-3 py-1.5 bg-[#DBE2EF] text-[#112D4E] rounded-full text-sm font-semibold"
-                      >
+                        className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold border border-slate-200"
+                        >
                         {skill}
-                      </span>
+                        </span>
                     ))}
-                  </div>
+                    </div>
                 </div>
               )}
 
               {/* Team Size */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mb-6">
+                  <h4 className="text-sm font-bold text-slate-900 mb-2">Team Size</h4>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-sm text-slate-600">
+                  <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-[#112D4E]">Team Size</h4>
-                </div>
-                <p className="text-gray-700 pl-10">{selectedJob.number_of_workers} worker{selectedJob.number_of_workers > 1 ? 's' : ''} needed</p>
-              </div>
-
-              {/* Status Badge */}
-              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                </div>
-                <div>
-                  <p className="font-bold text-green-900">You're Confirmed!</p>
-                  <p className="text-sm text-green-700">See you on {new Date(selectedJob.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {selectedJob.time}</p>
-                </div>
+                  <span>{selectedJob.number_of_workers} worker{selectedJob.number_of_workers > 1 ? 's' : ''} needed</span>
+                  </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="p-6 bg-gray-50 sm:rounded-b-3xl rounded-b-3xl">
-              <button
-                onClick={() => setSelectedJob(null)}
-                className="w-full py-3.5 bg-linear-to-br from-[#3F72AF] to-[#112D4E] text-white rounded-xl font-bold hover:shadow-lg transition-all"
-              >
-                Close
-              </button>
+              {/* Footer Button */}
+               <button
+                  onClick={() => setSelectedJob(null)}
+                  className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
+                >
+                  Close Details
+                </button>
             </div>
           </div>
         </div>
