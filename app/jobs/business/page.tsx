@@ -48,6 +48,7 @@ export default function BusinessJobsPage() {
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accepted" | "rejected">("all");
 
   const businessNavItems: NavItem[] = [
     {
@@ -512,20 +513,67 @@ export default function BusinessJobsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
-            <div className="bg-linear-to-r from-[#124E66] to-[#0d3a4d] p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Applications</h2>
-                  <p className="text-blue-100 text-sm mt-1">{selectedJobTitle}</p>
+            <div className="bg-linear-to-r from-[#124E66] to-[#0d3a4d] px-6 py-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white truncate">Applications</h2>
+                  <p className="text-blue-100 text-sm mt-1 truncate">{selectedJobTitle}</p>
                 </div>
                 <button
-                  onClick={() => setShowApplicantsModal(false)}
-                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                  onClick={() => {
+                    setShowApplicantsModal(false);
+                    setStatusFilter("all");
+                  }}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors ml-3 shrink-0"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <p className="text-blue-100 text-xs font-medium">Total</p>
+                  <p className="text-white text-lg font-bold">{applicants.length}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <p className="text-blue-100 text-xs font-medium">Accepted</p>
+                  <p className="text-green-300 text-lg font-bold">
+                    {applicants.filter(a => a.status === "accepted").length}
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <p className="text-blue-100 text-xs font-medium">Pending</p>
+                  <p className="text-yellow-300 text-lg font-bold">
+                    {applicants.filter(a => a.status === "pending").length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+              <div className="flex gap-2 overflow-x-auto">
+                {[
+                  { id: "all", label: "All", count: applicants.length },
+                  { id: "pending", label: "Pending", count: applicants.filter(a => a.status === "pending").length },
+                  { id: "accepted", label: "Accepted", count: applicants.filter(a => a.status === "accepted").length },
+                  { id: "rejected", label: "Rejected", count: applicants.filter(a => a.status === "rejected").length }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id as any)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                      statusFilter === tab.id
+                        ? "bg-[#124E66] text-white shadow-md"
+                        : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                    }`}
+                  >
+                    {tab.label} {tab.count > 0 && <span className={`ml-1 ${statusFilter === tab.id ? "text-blue-200" : "text-gray-400"}`}>({tab.count})</span>}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -549,90 +597,161 @@ export default function BusinessJobsPage() {
                   <p className="text-gray-600">This job hasn't received any applications.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {applicants.map((applicant) => (
-                    <div 
-                      key={applicant.application_id} 
-                      className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        {/* Applicant Info */}
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900">
-                                {applicant.worker?.name || "Unknown Worker"}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                Applied {new Date(applicant.applied_at).toLocaleDateString("en-US", {
+                (() => {
+                  const filteredApplicants = statusFilter === "all" 
+                    ? applicants 
+                    : applicants.filter(a => a.status === statusFilter);
+
+                  return filteredApplicants.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">No {statusFilter} applications</h3>
+                      <p className="text-sm text-gray-500">Try selecting a different filter</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredApplicants.map((applicant) => {
+                        const statusConfig = {
+                          accepted: {
+                            bgColor: "bg-green-50",
+                            borderColor: "border-green-200",
+                            textColor: "text-green-700",
+                            iconColor: "text-green-600",
+                            icon: (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )
+                          },
+                          rejected: {
+                            bgColor: "bg-red-50",
+                            borderColor: "border-red-200",
+                            textColor: "text-red-700",
+                            iconColor: "text-red-600",
+                            icon: (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )
+                          },
+                          pending: {
+                            bgColor: "bg-amber-50",
+                            borderColor: "border-amber-200",
+                            textColor: "text-amber-700",
+                            iconColor: "text-amber-600",
+                            icon: (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )
+                          }
+                        };
+
+                        const config = statusConfig[applicant.status as keyof typeof statusConfig] || statusConfig.pending;
+
+                        return (
+                          <div 
+                            key={applicant.application_id} 
+                            className={`bg-white border-2 ${config.borderColor} rounded-xl overflow-hidden hover:shadow-lg transition-all`}
+                          >
+                            {/* Status Banner */}
+                            <div className={`${config.bgColor} border-b ${config.borderColor} px-4 py-2.5 flex items-center justify-between`}>
+                              <div className="flex items-center gap-2">
+                                <div className={config.iconColor}>
+                                  {config.icon}
+                                </div>
+                                <span className={`${config.textColor} text-sm font-bold uppercase tracking-wide`}>
+                                  {applicant.status}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(applicant.applied_at).toLocaleDateString("en-US", {
                                   month: "short",
                                   day: "numeric",
-                                  year: "numeric",
                                   hour: "2-digit",
                                   minute: "2-digit"
                                 })}
-                              </p>
+                              </span>
                             </div>
-                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                              applicant.status === "accepted" 
-                                ? "bg-green-100 text-green-700"
-                                : applicant.status === "rejected"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}>
-                              {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
-                            </span>
-                          </div>
 
-                          {/* Skills */}
-                          {applicant.worker?.skills && applicant.worker.skills.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-xs font-semibold text-gray-600 mb-2">Skills:</p>
-                              <div className="flex flex-wrap gap-2">
-                                {applicant.worker.skills.map((skill, index) => (
-                                  <span
-                                    key={index}
-                                    className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium"
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
+                            {/* Applicant Details */}
+                            <div className="p-4">
+                              {/* Name */}
+                              <div className="mb-3">
+                                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  {applicant.worker?.name || "Unknown Worker"}
+                                </h3>
                               </div>
-                            </div>
-                          )}
 
-                          {/* Availability */}
-                          {applicant.worker?.availability && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <svg className="w-4 h-4 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <span>Available: {applicant.worker.availability}</span>
-                            </div>
-                          )}
-                        </div>
+                              {/* Skills */}
+                              {applicant.worker?.skills && applicant.worker.skills.length > 0 && (
+                                <div className="mb-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Skills</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {applicant.worker.skills.map((skill, index) => (
+                                      <span
+                                        key={index}
+                                        className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs rounded-md font-medium"
+                                      >
+                                        {skill}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
 
-                        {/* Action Buttons */}
-                        {applicant.status === "pending" && (
-                          <div className="flex sm:flex-col gap-2">
-                            <button
-                              onClick={() => handleUpdateApplicationStatus(applicant.application_id, "accepted")}
-                              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={() => handleUpdateApplicationStatus(applicant.application_id, "rejected")}
-                              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                              Reject
-                            </button>
+                              {/* Availability */}
+                              {applicant.worker?.availability && (
+                                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                                  <svg className="w-4 h-4 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  <span className="font-medium">Available: {applicant.worker.availability}</span>
+                                </div>
+                              )}
+
+                              {/* Action Buttons */}
+                              {applicant.status === "pending" && (
+                                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                                  <button
+                                    onClick={() => handleUpdateApplicationStatus(applicant.application_id, "accepted")}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Accept
+                                  </button>
+                                  <button
+                                    onClick={() => handleUpdateApplicationStatus(applicant.application_id, "rejected")}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
             </div>
           </div>
