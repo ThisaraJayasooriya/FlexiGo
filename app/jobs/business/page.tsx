@@ -19,6 +19,7 @@ interface Job {
   number_of_workers: number;
   created_at: string;
   application_count?: number;
+  accepted_count?: number;
 }
 
 interface Applicant {
@@ -152,15 +153,24 @@ export default function BusinessJobsPage() {
         )
       );
 
-      // Update the job's application count
+      // Update the job's accepted count
       if (selectedJobId) {
         setJobs(prev => 
           prev.map(job => {
             if (job.id === selectedJobId) {
-              const currentCount = job.application_count || 0;
+              const oldApplicant = applicants.find(a => a.application_id === applicationId);
+              let acceptedCount = job.accepted_count || 0;
+              
+              // Adjust accepted count based on status change
+              if (status === 'accepted' && oldApplicant?.status !== 'accepted') {
+                acceptedCount++;
+              } else if (status !== 'accepted' && oldApplicant?.status === 'accepted') {
+                acceptedCount = Math.max(0, acceptedCount - 1);
+              }
+              
               return {
                 ...job,
-                application_count: Math.max(0, currentCount)
+                accepted_count: acceptedCount
               };
             }
             return job;
@@ -253,7 +263,7 @@ export default function BusinessJobsPage() {
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -270,7 +280,7 @@ export default function BusinessJobsPage() {
           <div className="bg-white rounded-xl shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Workers</p>
+                <p className="text-sm text-gray-600">Positions Needed</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {jobs.reduce((sum, job) => sum + job.number_of_workers, 0)}
                 </p>
@@ -278,6 +288,21 @@ export default function BusinessJobsPage() {
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Positions Filled</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {jobs.reduce((sum, job) => sum + (job.accepted_count || 0), 0)}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -348,7 +373,7 @@ export default function BusinessJobsPage() {
 
                 {/* Compact Body */}
                 <div className="px-5 py-4">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {/* Date & Time */}
                     <div className="flex items-center gap-2">
                       <div className="shrink-0 w-8 h-8 bg-blue-50 rounded-md flex items-center justify-center">
@@ -411,8 +436,29 @@ export default function BusinessJobsPage() {
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Workers</p>
+                        <p className="text-xs text-gray-500">Workers Needed</p>
                         <p className="text-sm font-semibold text-gray-900">{job.number_of_workers}</p>
+                      </div>
+                    </div>
+
+                    {/* Staffing Status */}
+                    <div className="flex items-center gap-2">
+                      <div className="shrink-0 w-8 h-8 bg-teal-50 rounded-md flex items-center justify-center">
+                        <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500">Staffing Status</p>
+                        <p className={`text-sm font-semibold ${
+                          (job.accepted_count || 0) >= job.number_of_workers 
+                            ? 'text-green-600' 
+                            : (job.accepted_count || 0) > 0 
+                            ? 'text-orange-600' 
+                            : 'text-gray-900'
+                        }`}>
+                          {job.accepted_count || 0}/{job.number_of_workers} Filled
+                        </p>
                       </div>
                     </div>
                   </div>

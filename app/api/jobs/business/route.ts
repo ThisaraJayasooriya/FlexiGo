@@ -45,25 +45,30 @@ export async function GET(req: Request) {
     
     const { data: applicationCounts, error: countError } = await supabaseAdmin
       .from("applications")
-      .select("job_id")
+      .select("job_id, status")
       .in("job_id", jobIds);
 
     if (countError) {
       console.error("Error fetching application counts:", countError);
     }
 
-    // Create a map of job_id to application count
+    // Create a map of job_id to application count and accepted count
     const countMap = new Map<string, number>();
+    const acceptedMap = new Map<string, number>();
     if (applicationCounts && applicationCounts.length > 0) {
       applicationCounts.forEach(app => {
         countMap.set(app.job_id, (countMap.get(app.job_id) || 0) + 1);
+        if (app.status === 'accepted') {
+          acceptedMap.set(app.job_id, (acceptedMap.get(app.job_id) || 0) + 1);
+        }
       });
     }
 
-    // Add application_count to each job
+    // Add application_count and accepted_count to each job
     const jobsWithCounts = data.map(job => ({
       ...job,
-      application_count: countMap.get(job.id) || 0
+      application_count: countMap.get(job.id) || 0,
+      accepted_count: acceptedMap.get(job.id) || 0
     }));
 
     return NextResponse.json({ jobs: jobsWithCounts });

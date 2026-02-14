@@ -26,6 +26,15 @@ interface Application {
   };
 }
 
+interface AcceptanceStatus {
+  jobId: string;
+  requiredWorkers: number;
+  acceptedCount: number;
+  canAcceptMore: boolean;
+  remainingSlots: number;
+  isFullyStaffed: boolean;
+}
+
 export default function BusinessApplicationsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
@@ -37,6 +46,8 @@ export default function BusinessApplicationsPage() {
   const [profileImage, setProfileImage] = useState("");
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [acceptanceStatus, setAcceptanceStatus] = useState<AcceptanceStatus | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
 
   const businessNavItems: NavItem[] = [
     {
@@ -104,15 +115,57 @@ export default function BusinessApplicationsPage() {
     router.push("/");
   };
 
+  const closeModal = () => {
+    setSelectedApplication(null);
+    setAcceptanceStatus(null);
+  };
+
+  const fetchAcceptanceStatus = async (jobId: string) => {
+    setLoadingStatus(true);
+    try {
+      const json = await apiClient.get(`/api/jobs/${jobId}/acceptance-status`);
+      setAcceptanceStatus(json);
+    } catch (error: any) {
+      console.error("Failed to fetch acceptance status:", error);
+    } finally {
+      setLoadingStatus(false);
+    }
+  };
+
   const handleStatusUpdate = async (applicationId: string, status: "accepted" | "rejected") => {
+    // Check if trying to accept when fully staffed
+    if (status === "accepted" && acceptanceStatus && !acceptanceStatus.canAcceptMore) {
+      setToast({ 
+        type: "error", 
+        message: `Cannot accept more workers. You have already accepted ${acceptanceStatus.acceptedCount} out of ${acceptanceStatus.requiredWorkers} required workers.` 
+      });
+      return;
+    }
+
     setProcessing(applicationId);
     try {
       const json = await apiClient.patch("/api/applications/update", { applicationId, status });
       setApplications(applications.map(app =>
         app.id === applicationId ? { ...app, status } : app
       ));
+      
+      // Update acceptance status after accepting
+      if (status === "accepted" && selectedApplication) {
+        await fetchAcceptanceStatus(selectedApplication.jobs.id);
+        if (json.staffingInfo) {
+          setAcceptanceStatus({
+            jobId: selectedApplication.jobs.id,
+            requiredWorkers: json.staffingInfo.requiredWorkers,
+            acceptedCount: json.staffingInfo.acceptedCount,
+            canAcceptMore: !json.staffingInfo.isFullyStaffed,
+            remainingSlots: json.staffingInfo.remainingSlots,
+            isFullyStaffed: json.staffingInfo.isFullyStaffed
+          });
+        }
+      }
+      
       setToast({ type: "success", message: `Application ${status} successfully!` });
-      setSelectedApplication(null);
+      closeModal();
     } catch (error: any) {
       setToast({ type: "error", message: error.message });
     } finally {
@@ -237,7 +290,10 @@ export default function BusinessApplicationsPage() {
                         {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                       </span>
                       <button
-                        onClick={() => setSelectedApplication(application)}
+                        onClick={() => {
+                          setSelectedApplication(application);
+                          fetchAcceptanceStatus(application.jobs.id);
+                        }}
                         className="px-4 py-2 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm font-semibold rounded-lg hover:shadow-md transition-all"
                       >
                         View Details
@@ -269,7 +325,7 @@ export default function BusinessApplicationsPage() {
         {/* Modal for Application Details */}
         {selectedApplication && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center pb-20 sm:pb-0 animate-fadeIn"
-            onClick={() => setSelectedApplication(null)}
+            onClick={closeModal}
           >
             <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-4xl max-h-[calc(100vh-5rem)] sm:max-h-[90vh] flex flex-col overflow-hidden animate-slideUp"
               onClick={(e) => e.stopPropagation()}
@@ -289,7 +345,7 @@ export default function BusinessApplicationsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedApplication(null)}
+                    onClick={closeModal}
                     className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 flex items-center justify-center transition-all shrink-0"
                   >
                     <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,12 +497,74 @@ export default function BusinessApplicationsPage() {
                     </div>
                   </div>
 
+                  {/* Acceptance Status Information */}
+                  {acceptanceStatus && (
+                    <div className="mt-4 sm:mt-6 bg-linear-to-br from-blue-50 via-white to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-blue-200 shadow-sm">
+                      <h4 className="text-base sm:text-lg font-extrabold text-[#112D4E] mb-3 sm:mb-4 flex items-center gap-2">
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </div>
+                        Staffing Status
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-blue-100 shadow-sm">
+                          <p className="text-xs text-gray-600 mb-1 font-medium">Required</p>
+                          <p className="text-xl sm:text-2xl font-extrabold text-blue-600">{acceptanceStatus.requiredWorkers}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-green-100 shadow-sm">
+                          <p className="text-xs text-gray-600 mb-1 font-medium">Accepted</p>
+                          <p className="text-xl sm:text-2xl font-extrabold text-green-600">{acceptanceStatus.acceptedCount}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-orange-100 shadow-sm">
+                          <p className="text-xs text-gray-600 mb-1 font-medium">Remaining</p>
+                          <p className="text-xl sm:text-2xl font-extrabold text-orange-600">{acceptanceStatus.remainingSlots}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-purple-100 shadow-sm">
+                          <p className="text-xs text-gray-600 mb-1 font-medium">Status</p>
+                          <p className="text-sm sm:text-base font-extrabold capitalize" style={{
+                            color: acceptanceStatus.isFullyStaffed ? '#059669' : '#3F72AF'
+                          }}>
+                            {acceptanceStatus.isFullyStaffed ? 'Full' : 'Open'}
+                          </p>
+                        </div>
+                      </div>
+                      {acceptanceStatus.isFullyStaffed && (
+                        <div className="mt-3 sm:mt-4 bg-green-100 border-2 border-green-300 rounded-lg p-3 sm:p-4">
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                              <p className="text-sm sm:text-base font-bold text-green-800">Job Fully Staffed</p>
+                              <p className="text-xs sm:text-sm text-green-700 mt-1">You have accepted all required workers for this job.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {!acceptanceStatus.isFullyStaffed && acceptanceStatus.remainingSlots <= 2 && (
+                        <div className="mt-3 sm:mt-4 bg-yellow-100 border-2 border-yellow-300 rounded-lg p-3 sm:p-4">
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                              <p className="text-sm sm:text-base font-bold text-yellow-800">Almost Fully Staffed</p>
+                              <p className="text-xs sm:text-sm text-yellow-700 mt-1">Only {acceptanceStatus.remainingSlots} slot{acceptanceStatus.remainingSlots !== 1 ? 's' : ''} remaining.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   {selectedApplication.status === "pending" && (
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 mt-4 sm:mt-6 border-t-2 border-gray-200 pb-safe">
                       <button
                         onClick={() => handleStatusUpdate(selectedApplication.id, "accepted")}
-                        disabled={processing === selectedApplication.id}
+                        disabled={processing === selectedApplication.id || (acceptanceStatus?.isFullyStaffed ?? false)}
                         className="group flex-1 relative px-6 sm:px-8 py-3.5 sm:py-4 bg-linear-to-r from-green-500 via-green-600 to-green-700 text-white font-bold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl active:scale-95 sm:hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 overflow-hidden"
                       >
                         <div className="absolute inset-0 bg-linear-to-r from-green-400 to-green-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"></div>
@@ -457,7 +575,11 @@ export default function BusinessApplicationsPage() {
                             </svg>
                           </div>
                           <span className="text-sm sm:text-base">
-                            {processing === selectedApplication.id ? "Processing..." : "Accept Application"}
+                            {processing === selectedApplication.id 
+                              ? "Processing..." 
+                              : acceptanceStatus?.isFullyStaffed 
+                                ? "Fully Staffed" 
+                                : "Accept Application"}
                           </span>
                         </div>
                       </button>
