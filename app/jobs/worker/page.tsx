@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
-import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -31,8 +30,6 @@ export default function WorkerJobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkill, setSelectedSkill] = useState("");
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [profileImage, setProfileImage] = useState("");
 
   const workerNavItems: NavItem[] = [
     {
@@ -65,29 +62,9 @@ export default function WorkerJobsPage() {
     }
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie = "access_token=; path=/; max-age=0";
-    router.push("/");
-  };
-
   useEffect(() => {
     fetchJobs();
-    fetchProfile();
   }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const json = await apiClient.get("/api/workers/profile");
-      if (json.profile) {
-        setProfileName(json.profile.name || "");
-        // Workers don't have profile pictures in the database
-        setProfileImage("");
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
 
   useEffect(() => {
     filterJobs();
@@ -168,20 +145,10 @@ export default function WorkerJobsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-50 pb-20 font-['Inter',sans-serif]">
-        <Header 
-          title="FlexiGo" 
-          subtitle="Worker Portal" 
-          userName={profileName}
-          userImage={profileImage}
-          onProfileClick={() => router.push("/profile")}
-          onLogout={handleLogout} 
-        />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-            <p className="text-sm text-slate-600 font-medium">Loading jobs...</p>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
+          <p className="text-sm text-slate-500 font-medium">Loading opportunities...</p>
         </div>
         <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
@@ -189,43 +156,50 @@ export default function WorkerJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 font-sans">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <Header 
-        title="FlexiGo" 
-        subtitle="Worker Portal"
-        userName={profileName}
-        userImage={profileImage}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
-
-      {/* Sticky Header with Search & Filter */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="px-5 py-4 max-w-lg mx-auto w-full">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Find Jobs</h1>
-              <p className="text-xs text-slate-500 font-medium">{filteredJobs.length} opportunities available</p>
-            </div>
-            {/* Filter Toggle or Badge could go here if needed, keeping it clean for now */}
+      {/* Custom Gradient Header */}
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+        <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+          <div className="flex items-center justify-between mb-5">
+             <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                   <h1 className="text-2xl font-bold text-white leading-none">Find Jobs</h1>
+                   <p className="text-xs text-blue-100 font-medium mt-1">{filteredJobs.length} opportunities available</p>
+                </div>
+             </div>
+             
+             {/* Optional: Profile Icon or Filter Icon could go here */}
+             <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+             </div>
           </div>
-          
-          <div className="space-y-3">
-            {/* Search Input */}
-            <div className="relative group">
+
+          {/* Search & Filter Bar */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400 group-focus-within:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
-                placeholder="Search by title or venue..."
+                placeholder="Search jobs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 sm:text-sm transition-all shadow-sm"
+                className="block w-full pl-10 pr-3 py-3 rounded-xl border-none leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:text-sm shadow-lg shadow-black/5"
               />
               {searchTerm && (
                 <button
@@ -238,77 +212,38 @@ export default function WorkerJobsPage() {
                 </button>
               )}
             </div>
-
-            {/* Skill Filter */}
-            <div className="relative">
-              <select
-                value={selectedSkill}
-                onChange={(e) => setSelectedSkill(e.target.value)}
-                className="appearance-none block w-full pl-3.5 pr-10 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-shadow shadow-sm cursor-pointer"
-              >
-                <option value="">All Skills</option>
-                {getAllSkills().map((skill) => (
-                  <option key={skill} value={skill}>{skill}</option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+            
+            <div className="relative w-1/3">
+                 <select
+                  value={selectedSkill}
+                  onChange={(e) => setSelectedSkill(e.target.value)}
+                  className="appearance-none block w-full pl-3.5 pr-8 py-3 text-sm bg-white/95 backdrop-blur-sm border-none rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-lg shadow-black/5"
+                >
+                  <option value="">Filter</option>
+                  {getAllSkills().map((skill) => (
+                    <option key={skill} value={skill}>{skill}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
             </div>
           </div>
-
-          {/* Active Filter Chips */}
-          {(searchTerm || selectedSkill) && (
-            <div className="flex flex-wrap items-center gap-2 mt-3 animate-fadeIn">
-              {selectedSkill && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-900 text-white shadow-sm">
-                  {selectedSkill}
-                  <button
-                    onClick={() => setSelectedSkill("")}
-                    className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white focus:outline-none"
-                  >
-                    <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                      <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              {searchTerm && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-slate-700 border border-slate-200 shadow-sm">
-                  Search: "{searchTerm}"
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none"
-                  >
-                     <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                      <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              <button
-                onClick={() => { setSearchTerm(""); setSelectedSkill(""); }}
-                className="text-xs text-slate-500 hover:text-slate-800 font-medium ml-1 underline decoration-slate-300 underline-offset-2"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="px-5 py-6 max-w-lg mx-auto w-full">
+      <main className="px-5 py-6 max-w-md mx-auto w-full space-y-4">
         {filteredJobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fadeIn">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-5 ring-4 ring-white shadow-sm">
-              <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-5 shadow-sm">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">
               {jobs.length === 0 ? "No jobs available yet" : "No matches found"}
             </h3>
             <p className="text-sm text-slate-500 max-w-[260px] mx-auto mb-8 leading-relaxed">
@@ -319,7 +254,7 @@ export default function WorkerJobsPage() {
             {(searchTerm || selectedSkill) && (
               <button
                 onClick={() => { setSearchTerm(""); setSelectedSkill(""); }}
-                className="px-6 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 shadow-lg shadow-slate-200/50 active:scale-[0.98] transition-all"
+                className="px-6 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
               >
                 Clear Filters
               </button>
@@ -330,34 +265,32 @@ export default function WorkerJobsPage() {
             {filteredJobs.map((job) => (
               <div
                 key={job.id}
-                className={`group relative bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
+                className={`group relative bg-white rounded-2xl transition-all duration-200 overflow-hidden ${
                   job.has_applied 
-                    ? 'border-slate-100 opacity-75 grayscale-[0.5]' 
-                    : 'border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
+                    ? 'border border-slate-100 opacity-75' 
+                    : 'border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100'
                 }`}
               >
                 <div className="p-5">
                   {/* Card Header */}
                   <div className="flex justify-between items-start gap-4 mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">
-                        {job.title}
-                      </h3>
-                      <div className="flex items-center text-xs text-slate-500 font-medium">
-                        <span>Posted {formatDate(job.created_at)}</span>
-                        {job.has_applied && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 uppercase tracking-wide">
+                      {job.has_applied && (
+                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-wide mb-1.5">
                             Applied
                           </span>
-                        )}
-                      </div>
+                      )}
+                      <h3 className="text-lg font-bold text-slate-900 leading-tight">
+                        {job.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium mt-1">Posted {formatDate(job.created_at)}</p>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
-                      <span className="text-lg font-bold text-emerald-600">
+                      <span className="text-lg font-extrabold text-[#3F72AF]">
                         LKR {job.pay_rate}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                        Per Hour
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        / Hr
                       </span>
                     </div>
                   </div>
@@ -368,32 +301,32 @@ export default function WorkerJobsPage() {
                   {/* Job Details Grid */}
                   <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-5">
                     <div className="flex items-start gap-2.5">
-                      <div className="p-1.5 rounded-lg bg-slate-50 text-slate-500 shrink-0">
+                      <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0">
                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Date & Time</p>
-                        <p className="text-sm font-medium text-slate-700 truncate">{formatDate(job.date)}</p>
-                        <p className="text-xs text-slate-500">{job.time}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Date & Time</p>
+                        <p className="text-sm font-semibold text-slate-700 truncate">{formatDate(job.date)}</p>
+                        <p className="text-xs text-slate-500 font-medium">{job.time}</p>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-2.5">
-                      <div className="p-1.5 rounded-lg bg-slate-50 text-slate-500 shrink-0">
+                      <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Duration</p>
-                        <p className="text-sm font-medium text-slate-700">{job.working_hours} Hours</p>
-                        <p className="text-xs text-slate-500">Shift</p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Shift</p>
+                        <p className="text-sm font-semibold text-slate-700">{job.working_hours} Hours</p>
+                        <p className="text-xs text-slate-500 font-medium">Duration</p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-2.5 col-span-2 sm:col-span-1">
+                    <div className="flex items-start gap-2.5 col-span-2">
                       <div className="p-1.5 rounded-lg bg-slate-50 text-slate-500 shrink-0">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -401,32 +334,20 @@ export default function WorkerJobsPage() {
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Location</p>
-                        <p className="text-sm font-medium text-slate-700 truncate" title={job.venue}>{job.venue}</p>
-                      </div>
-                    </div>
-
-                     <div className="flex items-start gap-2.5 col-span-2 sm:col-span-1">
-                      <div className="p-1.5 rounded-lg bg-slate-50 text-slate-500 shrink-0">
-                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Team</p>
-                        <p className="text-sm font-medium text-slate-700">{job.number_of_workers} Needed</p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Location</p>
+                        <p className="text-sm font-semibold text-slate-700 truncate" title={job.venue}>{job.venue}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Skills & Action Footer */}
-                  <div className="flex flex-col gap-4">
+                   {/* Skills & Action Footer */}
+                  <div className="space-y-4">
                      {job.required_skills && job.required_skills.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {job.required_skills.map((skill, index) => (
                           <span
                             key={index}
-                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200/60"
+                            className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200"
                           >
                             {skill}
                           </span>
@@ -437,7 +358,7 @@ export default function WorkerJobsPage() {
                     <button
                       onClick={() => handleApply(job.id)}
                       disabled={job.has_applied}
-                      className={`w-full py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide transition-all transform active:scale-[0.99] ${
+                      className={`w-full py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide transition-all transform active:scale-[0.98] ${
                         job.has_applied
                           ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
                           : "bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5"
