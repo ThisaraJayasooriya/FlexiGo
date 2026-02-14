@@ -46,6 +46,8 @@ export default function BusinessJobsPage() {
   const [showApplicantsModal, setShowApplicantsModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
+  const [selectedJobWorkersNeeded, setSelectedJobWorkersNeeded] = useState(0);
+  const [selectedJobAcceptedCount, setSelectedJobAcceptedCount] = useState(0);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accepted" | "rejected">("all");
@@ -120,8 +122,11 @@ export default function BusinessJobsPage() {
   };
 
   const fetchApplicants = async (jobId: string, jobTitle: string) => {
+    const job = jobs.find(j => j.id === jobId);
     setSelectedJobId(jobId);
     setSelectedJobTitle(jobTitle);
+    setSelectedJobWorkersNeeded(job?.number_of_workers || 0);
+    setSelectedJobAcceptedCount(job?.accepted_count || 0);
     setShowApplicantsModal(true);
     setLoadingApplicants(true);
     
@@ -168,6 +173,9 @@ export default function BusinessJobsPage() {
               } else if (status !== 'accepted' && oldApplicant?.status === 'accepted') {
                 acceptedCount = Math.max(0, acceptedCount - 1);
               }
+              
+              // Update modal display if this is the selected job
+              setSelectedJobAcceptedCount(acceptedCount);
               
               return {
                 ...job,
@@ -515,9 +523,23 @@ export default function BusinessJobsPage() {
             {/* Modal Header */}
             <div className="bg-linear-to-r from-[#124E66] to-[#0d3a4d] px-6 py-5">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 mr-3">
                   <h2 className="text-xl sm:text-2xl font-bold text-white truncate">Applications</h2>
-                  <p className="text-blue-100 text-sm mt-1 truncate">{selectedJobTitle}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-blue-100 text-sm truncate">{selectedJobTitle}</p>
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+                      selectedJobAcceptedCount >= selectedJobWorkersNeeded
+                        ? 'bg-green-500 text-white'
+                        : selectedJobAcceptedCount > 0
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-white/20 text-white'
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span>{selectedJobAcceptedCount}/{selectedJobWorkersNeeded}</span>
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
