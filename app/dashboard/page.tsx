@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../components/Header";
+import Toast from "../components/ui/Toast";
 import BottomNav, { NavItem } from "../components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -347,8 +348,47 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
     }
   ];
 
+  const [highlightToday, setHighlightToday] = useState(false);
+  const [toast, setToast] = useState<{ type: "error" | "success" | "info"; message: string } | null>(null);
+
+  const handleViewToday = () => {
+    // Check if there are tasks for today first
+    const today = new Date();
+    const todayTasks = schedules.filter(s => {
+      const sDate = new Date(s.date);
+      return sDate.toDateString() === today.toDateString();
+    });
+
+    if (todayTasks.length === 0) {
+      setToast({ type: "info", message: "No tasks scheduled for today!" });
+      return;
+    }
+
+    // Sort today's tasks by time/date if needed, but assuming schedules is somewhat ordered
+    // We want to scroll to the FIRST task of today
+    const firstTodayTask = todayTasks[0];
+    const taskElement = document.getElementById(`schedule-card-${firstTodayTask.id}`);
+    
+    if (taskElement) {
+      // Scroll smoothly to the center of the viewport to ensure visibility
+      // Or 'start' to bring to top as requested, with some offset if possible via scroll-margin
+      taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightToday(true);
+      setTimeout(() => setHighlightToday(false), 3000);
+    } else {
+        // Fallback to section scroll if card not found for some reason
+        const scheduleSection = document.getElementById('schedule-section');
+        if (scheduleSection) {
+            scheduleSection.scrollIntoView({ behavior: 'smooth' });
+             setHighlightToday(true);
+            setTimeout(() => setHighlightToday(false), 3000);
+        }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
+      {toast && <Toast type={toast.type === "info" ? "success" : toast.type} message={toast.message} onClose={() => setToast(null)} />}
       <Header 
         title="FlexiGo" 
         subtitle="Worker Portal" 
@@ -360,14 +400,41 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
 
       {/* Main Content */}
       <main className="max-w-md mx-auto px-5 py-6 space-y-8">
-        {/* Welcome Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-3xl p-6 shadow-xl shadow-blue-900/10">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-white mb-1.5">Hello, {(profileName || userName).split(' ')[0]}! 👋</h2>
-            <p className="text-blue-100 text-sm font-medium">Ready for your next shift?</p>
+        {/* Welcome Section - Premium Dark Design */}
+        <div className="relative overflow-hidden bg-slate-900 rounded-[35px] p-8 shadow-2xl shadow-slate-900/30 isolate group">
+          {/* Animated Background Mesh */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#3F72AF] rounded-full mix-blend-screen filter blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity duration-700 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#112D4E] rounded-full mix-blend-screen filter blur-[60px] opacity-40 group-hover:opacity-50 transition-opacity duration-700 -ml-20 -mb-20"></div>
+          
+          {/* Floating Subtle Particles (simulated with standard classes for performance) */}
+          <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-blue-200 rounded-full opacity-40 animate-pulse"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-blue-100 rounded-full opacity-30 animate-pulse delay-700"></div>
+
+          <div className="relative z-10 flex flex-col items-start">
+             <div className="flex items-center gap-2 mb-3">
+               <span className="px-3 py-1 rounded-full bg-white/10 border border-white/5 backdrop-blur-md text-[10px] font-bold text-blue-100 uppercase tracking-widest leading-none">
+                {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+               </span>
+               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></div>
+             </div>
+
+            <h2 className="text-4xl font-light text-white tracking-tight leading-tight mb-1">
+              {new Date().getHours() < 12 ? "Good" : new Date().getHours() < 18 ? "Good" : "Good"} <span className="font-bold">{new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}</span>,
+            </h2>
+            <p className="text-xl text-blue-200 font-medium mb-6">
+              {(profileName || userName).split(' ')[0]}
+            </p>
+
+            <button 
+              onClick={handleViewToday}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl font-bold text-xs hover:bg-blue-50 transition-colors shadow-lg shadow-white/10 active:scale-95"
+            >
+              <span>View Today's Tasks</span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
           </div>
-          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-20 h-20 bg-blue-400/20 rounded-full blur-xl"></div>
         </div>
 
         {/* Stats Overview */}
@@ -439,7 +506,7 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
         </div>
 
         {/* My Schedule */}
-        <div className="space-y-4">
+        <div id="schedule-section" className="space-y-4 scroll-mt-24">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-lg font-bold text-slate-900">My Schedule</h3>
              <span className="text-xs font-medium text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200 shadow-sm">
@@ -473,26 +540,39 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
               {schedules.map((schedule) => {
                 const scheduleDate = new Date(schedule.date);
                 const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const isUpcoming = scheduleDate >= today;
-                const isPast = scheduleDate < today;
-
+                
+                // Robust date string comparison
+                const isToday = scheduleDate.toDateString() === today.toDateString();
+                
+                // For upcoming, reset time to midnight to encompass "today" as upcoming too if needed
+                // But generally "upcoming" means future dates or today
+                const checkDate = new Date(scheduleDate);
+                checkDate.setHours(0,0,0,0);
+                const todayCheck = new Date();
+                todayCheck.setHours(0,0,0,0);
+                const isUpcoming = checkDate >= todayCheck;
+                
                 return (
                   <button
                     key={schedule.id}
+                    id={`schedule-card-${schedule.id}`}
                     onClick={() => setSelectedJob(schedule)}
-                    className={`w-full text-left bg-white rounded-2xl p-4 border transition-all active:scale-[0.99] ${
-                      isUpcoming 
-                        ? 'border-slate-100 shadow-sm hover:shadow-md' 
-                        : 'border-slate-100 opacity-60 bg-slate-50'
+                    className={`w-full text-left bg-white rounded-2xl p-4 border transition-all duration-500 active:scale-[0.99] scroll-mt-24 ${
+                      highlightToday && isToday 
+                        ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)] ring-2 ring-blue-500 scale-[1.02] z-10 relative bg-blue-50' 
+                        : isUpcoming 
+                          ? 'border-slate-100 shadow-sm hover:shadow-md' 
+                          : 'border-slate-100 opacity-60 bg-slate-50'
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       {/* Date Block */}
-                       <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center border ${
-                        isUpcoming 
-                          ? 'bg-blue-50 border-blue-100 text-blue-700' 
-                          : 'bg-slate-100 border-slate-200 text-slate-500'
+                       <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center border transition-colors ${
+                        highlightToday && isToday
+                           ? 'bg-blue-600 border-blue-600 text-white'
+                           : isUpcoming 
+                             ? 'bg-blue-50 border-blue-100 text-blue-700' 
+                             : 'bg-slate-100 border-slate-200 text-slate-500'
                       }`}>
                          <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
                           {scheduleDate.toLocaleDateString('en-US', { month: 'short' })}
