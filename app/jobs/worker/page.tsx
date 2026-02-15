@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
+import LoadingWave from "@/app/components/ui/LoadingWave"; // Added import
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -58,7 +59,7 @@ export default function WorkerJobsPage() {
       label: "Profile",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-      href: "/profile"
+      href: "/profile/worker"
     }
   ];
 
@@ -146,9 +147,9 @@ export default function WorkerJobsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
-          <p className="text-sm text-slate-500 font-medium">Loading opportunities...</p>
+        <div className="text-center flex flex-col items-center">
+          <LoadingWave />
+          <p className="text-sm text-slate-500 font-medium mt-4">Loading opportunities...</p>
         </div>
         <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>

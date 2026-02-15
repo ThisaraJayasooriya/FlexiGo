@@ -118,3 +118,18 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes wave-color {
+  0%, 100% {
+    transform: translateY(0);
+    background-color: #BFDBFE; /* blue-200 */
+  }
+  50% {
+    transform: translateY(-10px);
+    background-color: #1E3A8A; /* blue-900 */
+  }
+}
+
+.animate-wave-color {
+  animation: wave-color 1.2s ease-in-out infinite;
+}

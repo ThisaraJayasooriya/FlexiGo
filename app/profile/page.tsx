@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import LoadingWave from "@/app/components/ui/LoadingWave"; // Added import
 import { apiClient } from "@/lib/api-client";
 
 export default function ProfileRouter() {
@@ -27,10 +29,10 @@ export default function ProfileRouter() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7]">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-        <p className="text-gray-600 font-semibold">Loading...</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#F9F7F7]">
+      <div className="text-center flex flex-col items-center">
+        <LoadingWave />
+        <p className="text-[#3F72AF] font-medium mt-4 animate-pulse">Redirecting...</p>
       </div>
     </div>
   );

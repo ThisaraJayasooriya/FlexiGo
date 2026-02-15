@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import LoadingWave from "@/app/components/ui/LoadingWave";
+import Toast from "@/app/components/ui/Toast"; // Restored import
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
-import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
 import LocationSelector from "@/app/components/LocationSelector";
 import { getInitials } from "@/lib/utils";
@@ -57,7 +59,7 @@ export default function WorkerProfile() {
       label: "Profile",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-      href: "/profile"
+      href: "/profile/worker"
     }
   ];
 
@@ -156,9 +158,9 @@ export default function WorkerProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
-          <p className="text-sm text-slate-500 font-medium">Loading profile...</p>
+        <div className="text-center flex flex-col items-center">
+          <LoadingWave />
+          <p className="text-sm text-slate-500 font-medium mt-4">Loading profile...</p>
         </div>
       </div>
     );
@@ -249,83 +251,124 @@ export default function WorkerProfile() {
       {/* Content Sheet */}
       <div className="relative z-20 -mt-16 mx-4 bg-white rounded-[32px] shadow-xl p-6 min-h-[400px]">
          {editing ? (
-           /* Edit Mode - Clean Modern Inputs */
-           <div className="space-y-6 pt-2 animate-fadeIn">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">Update Details</h2>
+           <div className="space-y-8 pt-2 animate-fadeIn">
+              <div className="flex items-center justify-between mb-2">
+                 <h2 className="text-xl font-bold text-slate-900">Edit Profile</h2>
+                 <button 
+                   onClick={() => setEditing(false)}
+                   className="text-sm font-bold text-slate-400 hover:text-slate-600 px-3 py-1 rounded-full hover:bg-slate-100 transition-colors"
+                 >
+                   Cancel
+                 </button>
+              </div>
               
-              <div className="space-y-4">
-                 <div className="group">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800"
-                      placeholder="Jane Doe"
-                    />
-                 </div>
+              <div className="space-y-6">
+                 {/* Personal Details Section */}
+                 <div className="space-y-4">
+                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest pl-1">Personal Details</h3>
+                    
+                    <div className="group relative">
+                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                       </div>
+                       <input
+                         type="text"
+                         value={name}
+                         onChange={(e) => setName(e.target.value)}
+                         className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 placeholder-slate-400"
+                         placeholder="Full Name"
+                       />
+                       <label className="absolute -top-2 left-4 bg-white px-1 text-[10px] font-bold text-blue-500 opacity-0 group-focus-within:opacity-100 transition-all transform scale-90 group-focus-within:scale-100">FULL NAME</label>
+                    </div>
 
-                 <div className="group">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Skills <span className="text-red-400">*</span></label>
-                    <SkillSelector
-                      selectedSkills={skills}
-                      onChange={(newSkills) => {
-                        setSkills(newSkills);
-                        setSkillError("");
-                      }}
-                      maxSkills={10}
-                      error={skillError}
-                    />
-                 </div>
-
-                 <div className="group">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Availability</label>
-                    <div className="relative">
-                       <select
-                        value={availability}
-                        onChange={(e) => setAvailability(e.target.value)}
-                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 appearance-none"
-                      >
-                        <option value="">Select availability</option>
-                        <option value="full-time">Full Time</option>
-                        <option value="part-time">Part Time</option>
-                        <option value="weekends">Weekends Only</option>
-                        <option value="flexible">Flexible</option>
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
+                    <div className="group relative">
+                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                       </div>
+                       <div className="relative">
+                          <select
+                           value={availability}
+                           onChange={(e) => setAvailability(e.target.value)}
+                           className="w-full pl-12 pr-10 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 appearance-none cursor-pointer"
+                         >
+                           <option value="">Select Availability</option>
+                           <option value="full-time">Full Time</option>
+                           <option value="part-time">Part Time</option>
+                           <option value="weekends">Weekends Only</option>
+                           <option value="flexible">Flexible</option>
+                         </select>
+                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                           </svg>
+                         </div>
+                       </div>
+                       <label className="absolute -top-2 left-4 bg-white px-1 text-[10px] font-bold text-blue-500 opacity-0 group-focus-within:opacity-100 transition-all">AVAILABILITY</label>
                     </div>
                  </div>
 
-                 <div className="group">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Location</label>
-                    <LocationSelector
-                      location={location}
-                      onChange={(newLocation) => {
-                        setLocation(newLocation);
-                        setLocationError("");
-                      }}
-                      error={locationError}
-                    />
+                 {/* Professional Info Section */}
+                 <div className="space-y-4">
+                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest pl-1 mt-6">Professional Info</h3>
+                    
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Skills & Expertise <span className="text-red-400">*</span>
+                       </label>
+                       <SkillSelector
+                         selectedSkills={skills}
+                         onChange={(newSkills) => {
+                           setSkills(newSkills);
+                           setSkillError("");
+                         }}
+                         maxSkills={10}
+                         error={skillError}
+                       />
+                    </div>
+                 </div>
+
+                 {/* Location Section */}
+                 <div className="space-y-4">
+                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest pl-1 mt-6">Location</h3>
+                    <div className="bg-slate-50 rounded-2xl p-1 border border-slate-100">
+                       <LocationSelector
+                         location={location}
+                         onChange={(newLocation) => {
+                           setLocation(newLocation);
+                           setLocationError("");
+                         }}
+                         error={locationError}
+                       />
+                    </div>
                  </div>
               </div>
 
-               <div className="pt-6 flex gap-3">
-                <button
-                   onClick={() => setEditing(false)}
-                   className="flex-1 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition-colors"
-                >
-                   Cancel
-                </button>
+               <div className="pt-8 pb-4">
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 py-4 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] text-white font-bold text-lg rounded-2xl shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? (
+                     <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
+                        <span>Saving Changes...</span>
+                     </>
+                  ) : (
+                     <>
+                        <span>Save Changes</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                     </>
+                  )}
                 </button>
               </div>
            </div>
