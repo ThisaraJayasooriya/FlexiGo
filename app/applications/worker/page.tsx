@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
+import LoadingWave from "@/app/components/ui/LoadingWave"; // Added import
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -172,9 +173,9 @@ export default function WorkerApplicationsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
-          <p className="text-sm text-slate-500 font-medium">Loading applications...</p>
+        <div className="text-center flex flex-col items-center">
+          <LoadingWave />
+          <p className="text-sm text-slate-500 font-medium mt-4">Loading applications...</p>
         </div>
         <BottomNav items={workerNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>

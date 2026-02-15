@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../components/Header";
 import Toast from "../components/ui/Toast";
+import LoadingWave from "../components/ui/LoadingWave";
 import BottomNav, { NavItem } from "../components/BottomNav";
 import { apiClient } from "@/lib/api-client";
 
@@ -33,10 +34,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-          <p className="text-gray-600 font-semibold">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F9F7F7]">
+        <div className="text-center flex flex-col items-center">
+          <LoadingWave />
+          <p className="text-[#3F72AF] font-medium mt-4 animate-pulse">Loading experience...</p>
         </div>
       </div>
     );
@@ -516,8 +517,8 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
 
           {loading ? (
              <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-              <p className="text-sm text-slate-400 font-medium">Loading your schedule...</p>
+              <LoadingWave />
+              <p className="text-sm text-blue-400 font-medium mt-4">Syncing schedules...</p>
             </div>
           ) : schedules.length === 0 ? (
             <div className="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm">

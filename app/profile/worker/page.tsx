@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import LoadingWave from "@/app/components/ui/LoadingWave";
+import Toast from "@/app/components/ui/Toast"; // Restored import
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
-import Toast from "@/app/components/ui/Toast";
 import SkillSelector from "@/app/components/SkillSelector";
 import LocationSelector from "@/app/components/LocationSelector";
 import { getInitials } from "@/lib/utils";
@@ -156,9 +158,9 @@ export default function WorkerProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center pb-20 font-sans antialiased">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600 mb-3"></div>
-          <p className="text-sm text-slate-500 font-medium">Loading profile...</p>
+        <div className="text-center flex flex-col items-center">
+          <LoadingWave />
+          <p className="text-sm text-slate-500 font-medium mt-4">Loading profile...</p>
         </div>
       </div>
     );
