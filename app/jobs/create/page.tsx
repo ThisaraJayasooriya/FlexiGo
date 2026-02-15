@@ -5,7 +5,6 @@ import Link from "next/link";
 import Input from "@/app/components/ui/Input";
 import Button from "@/app/components/ui/Button";
 import Toast from "@/app/components/ui/Toast";
-import Header from "@/app/components/Header";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import SkillSelector from "@/app/components/SkillSelector";
 import VenueLocationSelector, { VenueLocation } from "@/app/components/VenueLocationSelector";
@@ -56,14 +55,14 @@ export default function CreateJobPage() {
     },
     {
       id: "jobs",
-      label: "Jobs",
+      label: "My Jobs",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       href: "/jobs/business"
     },
     {
       id: "create",
-      label: "Create",
+      label: "Post Job",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       href: "/jobs/create",
@@ -129,10 +128,10 @@ export default function CreateJobPage() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
-    } catch (error: any) {
+    } catch (error) {
       setToast({
         type: "error",
-        message: error.message || "Failed to create job",
+        message: (error as Error).message || "Failed to create job",
       });
     } finally {
       setLoading(false);
@@ -140,229 +139,238 @@ export default function CreateJobPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <Header 
-        title="FlexiGo" 
-        subtitle="Business Portal"
-        userName={profileName}
-        userImage={profileImage}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
+      {/* Sticky Gradient Header */}
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+        <div className="max-w-3xl mx-auto px-5 pt-6 pb-6">
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                   <h1 className="text-2xl font-bold text-white leading-none">Create Job</h1>
+                   <p className="text-xs text-blue-100 font-medium mt-1">Post a new opportunity</p>
+                </div>
+             </div>
+             
 
-      <main className="max-w-3xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Link href="/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-[#124E66] mb-4 transition-colors">
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Create New Job</h1>
-          <p className="text-gray-600">Post a new opportunity for workers</p>
+          </div>
         </div>
+      </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Job Title */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Job Title
-              </label>
-              <Input
-                type="text"
-                placeholder="e.g., Event Setup Crew"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-                minLength={3}
-              />
-            </div>
-
-            {/* Date and Time Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Date */}
+      <main className="max-w-3xl mx-auto px-5 py-8">
+        <form onSubmit={handleSubmit}>
+          
+          {/* SECTION 1: BASIC DETAILS */}
+          <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 md:p-8 mb-6 animate-slideUp">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              Job Details
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Job Title */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Date
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Job Position Name
                 </label>
                 <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  type="text"
+                  placeholder="e.g., Event Setup Crew"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
+                  minLength={3}
+                  className="!bg-slate-50 !border-slate-200 focus:!border-[#3F72AF] focus:!ring-[#3F72AF]/20 !py-3 !text-base"
                 />
               </div>
 
-              {/* Time */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Time
-                </label>
-                <Input
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  required
-                />
+              {/* Workers & Skills */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Number of Workers
+                  </label>
+                   <Input
+                    type="number"
+                    placeholder="e.g., 5"
+                    value={formData.workerCount}
+                    onChange={(e) => setFormData({ ...formData, workerCount: e.target.value })}
+                    required
+                    min="1"
+                    className="!bg-slate-50 !border-slate-200 focus:!border-[#3F72AF] focus:!ring-[#3F72AF]/20"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                     Required Skills <span className="text-slate-400 font-normal text-xs ml-1">(Optional)</span>
+                  </label>
+                  <SkillSelector
+                    selectedSkills={requiredSkills}
+                    onChange={(skills) => {
+                      setRequiredSkills(skills);
+                      setSkillError("");
+                    }}
+                    maxSkills={5}
+                    error={skillError}
+                  />
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Working Hours */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Working Hours
-              </label>
-              <Input
-                type="text"
-                placeholder="8 hours"
-                value={formData.workingHours}
-                onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
-                required
-                minLength={1}
-              />
+
+          {/* SECTION 2: SCHEDULE & LOCATION */}
+          <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 p-4 sm:p-6 md:p-8 mb-6 animate-slideUp" style={{ animationDelay: '0.1s' }}>
+             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              Schedule & Location
+            </h2>
+
+            <div className="space-y-6">
+               <div className="flex flex-col space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+                  <div className="flex gap-3 md:contents">
+                    <div className="flex-1 min-w-0 md:w-auto">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Date</label>
+                      <Input
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        required
+                        className="!bg-slate-50 !border-slate-200 focus:!border-purple-500 focus:!ring-purple-500/20 !px-3"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0 md:w-auto">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Start Time</label>
+                      <Input
+                        type="time"
+                        value={formData.time}
+                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                        required
+                        className="!bg-slate-50 !border-slate-200 focus:!border-purple-500 focus:!ring-purple-500/20 !px-3"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Duration (hours)</label>
+                    <Input
+                      type="text"
+                      placeholder="e.g., 8"
+                      value={formData.workingHours}
+                      onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
+                      required
+                      className="!bg-slate-50 !border-slate-200 focus:!border-purple-500 focus:!ring-purple-500/20"
+                    />
+                  </div>
+               </div>
+
+               <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Venue</label>
+                  <VenueLocationSelector
+                    location={venueLocation}
+                    onChange={(loc) => {
+                      setVenueLocation(loc);
+                      setVenueError("");
+                    }}
+                    error={venueError}
+                  />
+               </div>
             </div>
+          </div>
 
-            {/* Venue Location */}
-            <div>
-              <VenueLocationSelector
-                location={venueLocation}
-                onChange={(loc) => {
-                  setVenueLocation(loc);
-                  setVenueError("");
-                }}
-                error={venueError}
-              />
-            </div>
 
-            {/* Pay Rate and Worker Count Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Pay Rate */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Pay Rate (LKR per hour)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="e.g., 1500"
-                  value={formData.payRate}
-                  onChange={(e) => setFormData({ ...formData, payRate: e.target.value })}
-                  required
-                  min="0"
-                  step="0.01"
-                />
-              </div>
+          {/* SECTION 3: COMPENSATION */}
+          <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 md:p-8 mb-8 animate-slideUp" style={{ animationDelay: '0.2s' }}>
+             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Compensantion
+            </h2>
 
-              {/* Worker Count */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Workers Needed
-                </label>
-                <Input
-                  type="number"
-                  placeholder="e.g., 5"
-                  value={formData.workerCount}
-                  onChange={(e) => setFormData({ ...formData, workerCount: e.target.value })}
-                  required
-                  min="1"
-                />
-              </div>
-            </div>
+             <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Rate per Shift (LKR)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">LKR</span>
+                  <Input
+                    type="number"
+                    placeholder="2500"
+                    value={formData.payRate}
+                    onChange={(e) => setFormData({ ...formData, payRate: e.target.value })}
+                    required
+                    min="0"
+                    step="0.01"
+                    className="!bg-green-50/50 !border-green-100 focus:!border-emerald-500 focus:!ring-emerald-500/20 !pl-14 !text-lg !font-bold !text-emerald-700 placeholder:!text-emerald-700/30"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Total payment for the specified duration.
+                </p>
+             </div>
+          </div>
 
-            {/* Required Skills */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                Required Skills (Optional)
-              </label>
-              <SkillSelector
-                selectedSkills={requiredSkills}
-                onChange={(skills) => {
-                  setRequiredSkills(skills);
-                  setSkillError("");
-                }}
-                maxSkills={10}
-                error={skillError}
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                Select skills that workers should have for this job (maximum 10)
-              </p>
-            </div>
 
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          {/* Info Box */}
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
               <div className="flex gap-3">
-                <div className="shrink-0">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="shrink-0 bg-blue-100 p-1.5 rounded-full h-8 w-8 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Job Posting Tips</p>
-                  <ul className="list-disc list-inside space-y-1 text-blue-700">
-                    <li>Be specific about the job requirements</li>
-                    <li>Set competitive pay rates to attract quality workers</li>
-                    <li>List all necessary skills to find the right match</li>
+                  <p className="font-bold mb-1 text-xs uppercase tracking-wide text-blue-700">Tips for Success</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-xs font-medium">
+                    <li>Be specific about requirements</li>
+                    <li>Competitive pay attracts better talent</li>
+                    <li>List all necessary skills clearly</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button type="submit" disabled={loading} fullWidth>
-                {loading ? (
+          {/* Action Area */}
+          <div className="flex flex-col gap-3 pb-6">
+            <Button
+              type="submit"
+              disabled={loading}
+              fullWidth
+              className="!bg-gradient-to-r !from-[#3F72AF] !to-[#112D4E] !rounded-xl !py-4 !text-base !shadow-xl !shadow-blue-900/20 active:!scale-[0.98] transition-all hover:!shadow-blue-900/40 hover:!translate-y-[-2px]"
+            >
+               {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating Job...
+                    Publishing Job...
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2 font-bold text-white">
+                    Post Opportunity
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
-                    Create Job
                   </span>
                 )}
-              </Button>
-              <Link 
+            </Button>
+            
+            <Link 
                 href="/dashboard" 
-                className="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center justify-center px-6 py-4 rounded-xl font-bold text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
               >
-                Cancel
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
+                Cancel and Go Back
+            </Link>
+          </div>
+
+        </form>
       </main>
 
       <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
