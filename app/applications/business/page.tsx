@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/app/components/Header";
+import Link from "next/link";
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
 import Toast from "@/app/components/ui/Toast";
+import LoadingWave from "@/app/components/ui/LoadingWave";
 import { apiClient } from "@/lib/api-client";
 
 interface Application {
@@ -41,14 +42,15 @@ export default function BusinessApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("applications");
-  const [profileName, setProfileName] = useState("");
-  const [profileImage, setProfileImage] = useState("");
+  const [activeTab, setActiveTab] = useState("applications"); // Note: NavItem ID for applications might be different, let's check
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [acceptanceStatus, setAcceptanceStatus] = useState<AcceptanceStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // Business Nav Items - adjusted to match the business dashboard structure
+  // In the real app, these might be centralized, but here we define them locally as per previous patterns
   const businessNavItems: NavItem[] = [
     {
       id: "home",
@@ -59,14 +61,14 @@ export default function BusinessApplicationsPage() {
     },
     {
       id: "jobs",
-      label: "Jobs",
+      label: "My Jobs",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       href: "/jobs/business"
     },
     {
       id: "create",
-      label: "Create",
+      label: "Post Job",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       href: "/jobs/create",
@@ -83,20 +85,7 @@ export default function BusinessApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
-    fetchProfile();
   }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const json = await apiClient.get("/api/businesses/profile");
-      if (json.profile) {
-        setProfileName(json.profile.company_name || "");
-        setProfileImage(json.profile.logo_url || "");
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
 
   const fetchApplications = async () => {
     try {
@@ -107,12 +96,6 @@ export default function BusinessApplicationsPage() {
       setToast({ type: "error", message: error.message });
       setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie = "access_token=; path=/; max-age=0";
-    router.push("/");
   };
 
   const closeModal = () => {
@@ -133,11 +116,10 @@ export default function BusinessApplicationsPage() {
   };
 
   const handleStatusUpdate = async (applicationId: string, status: "accepted" | "rejected") => {
-    // Check if trying to accept when fully staffed
     if (status === "accepted" && acceptanceStatus && !acceptanceStatus.canAcceptMore) {
       setToast({ 
         type: "error", 
-        message: `Cannot accept more workers. You have already accepted ${acceptanceStatus.acceptedCount} out of ${acceptanceStatus.requiredWorkers} required workers.` 
+        message: `Job is full. Accepted ${acceptanceStatus.acceptedCount}/${acceptanceStatus.requiredWorkers} workers.` 
       });
       return;
     }
@@ -165,7 +147,8 @@ export default function BusinessApplicationsPage() {
       }
       
       setToast({ type: "success", message: `Application ${status} successfully!` });
-      closeModal();
+      // Don't close modal immediately so user can see the result, or close if you prefer
+      if (status === "rejected") closeModal();
     } catch (error: any) {
       setToast({ type: "error", message: error.message });
     } finally {
@@ -173,441 +156,310 @@ export default function BusinessApplicationsPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "accepted": return "bg-green-100 text-green-700 border-green-200";
-      case "rejected": return "bg-red-100 text-red-700 border-red-200";
-      case "pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
-
-  const filteredApplications = applications.filter(app =>
-    filterStatus === "all" || app.status === filterStatus
-  );
+  const filteredApplications = applications.filter(app => {
+    const matchesStatus = filterStatus === "all" || app.status === filterStatus;
+    const matchesSearch = searchTerm === "" || 
+      app.worker_profiles.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.jobs.title.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-          <p className="text-sm text-slate-600 font-medium">Loading applications...</p>
+     return (
+       <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
+          {/* Header Skeleton */}
+          <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+            <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+                 <div className="flex items-center justify-between mb-5">
+                     <div className="h-10 w-10 bg-white/10 rounded-full animate-pulse"></div>
+                     <div className="h-8 w-32 bg-white/10 rounded-lg animate-pulse"></div>
+                 </div>
+                 <div className="h-12 bg-white/10 rounded-xl animate-pulse"></div>
+            </div>
         </div>
-      </div>
-    );
+         <div className="flex items-center justify-center min-h-[60vh]">
+           <div className="text-center flex flex-col items-center">
+             <LoadingWave />
+             <p className="text-sm text-slate-500 font-medium mt-4">Loading applications...</p>
+           </div>
+         </div>
+         <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
+       </div>
+     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
-      <Header
-        title="FlexiGo"
-        subtitle="Business Portal"
-        userName={profileName}
-        userImage={profileImage}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
+      {/* Custom Gradient Header */}
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+        <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+          <div className="flex items-center justify-between mb-5">
+             <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                   <h1 className="text-2xl font-bold text-white leading-none">Applications</h1>
+                   <p className="text-xs text-blue-100 font-medium mt-1">{applications.length} total received</p>
+                </div>
+             </div>
+          </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#112D4E] mb-2">Job Applications</h1>
-          <p className="text-sm sm:text-base text-gray-600">Review and manage applications from workers</p>
+          {/* Search Bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search candidate or job..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-10 pr-3 py-3 rounded-xl border-none leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:text-sm shadow-lg shadow-black/5"
+            />
+             {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+          </div>
         </div>
+      </div>
 
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-6">
-          <div className="flex flex-wrap gap-2">
+      <main className="max-w-md mx-auto px-5 py-6 space-y-6">
+        {/* Status Filter Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
             {["all", "pending", "accepted", "rejected"].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                   filterStatus === status
-                    ? "bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/20"
+                    : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"
                 }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)} ({applications.filter(app => status === "all" || app.status === status).length})
+                {status.charAt(0).toUpperCase() + status.slice(1)} <span className="opacity-70 ml-1">({applications.filter(a => status === "all" || a.status === status).length})</span>
               </button>
             ))}
-          </div>
         </div>
 
         {/* Applications List */}
         {filteredApplications.length === 0 ? (
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-12 text-center">
-            <svg className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">No Applications Found</h3>
-            <p className="text-gray-600">
+          <div className="bg-white rounded-3xl p-10 text-center border border-slate-100 shadow-sm flex flex-col items-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No applications found</h3>
+            <p className="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed">
               {filterStatus === "all" 
-                ? "You haven't received any applications yet." 
-                : `No ${filterStatus} applications.`}
+                ? "Wait for workers to apply to your jobs." 
+                : `No applications with status "${filterStatus}".`}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredApplications.map((application) => (
-              <div
-                key={application.id}
-                className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
+            {filteredApplications.map((app) => (
+              <div 
+                key={app.id}
+                onClick={() => {
+                  setSelectedApplication(app);
+                  fetchAcceptanceStatus(app.jobs.id);
+                }}
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer group relative"
               >
-                {/* Application Summary */}
-                <div className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#3F72AF] to-[#112D4E] flex items-center justify-center shrink-0">
-                          <span className="text-white font-bold text-lg">
-                            {application.worker_profiles.name.charAt(0)}
-                          </span>
+                <div className="p-5">
+                  {/* Card Header: Worker Name & Status */}
+                  <div className="flex justify-between items-start gap-3 mb-4">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg shrink-0">
+                           {app.worker_profiles.name.charAt(0)}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold text-[#112D4E] truncate">
-                            {application.worker_profiles.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 truncate">
-                            Applied for: <span className="font-semibold text-[#3F72AF]">{application.jobs.title}</span>
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(application.applied_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
-                          </p>
+                        <div>
+                           <h3 className="text-base font-bold text-slate-900 leading-tight">{app.worker_profiles.name}</h3>
+                           <p className="text-xs text-slate-500 font-medium mt-0.5">Applied {new Date(app.applied_at).toLocaleDateString()}</p>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusColor(application.status)}`}>
-                        {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                     </div>
+                     <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide border ${
+                        app.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
+                        app.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
+                        'bg-amber-50 text-amber-700 border-amber-100'
+                      }`}>
+                        {app.status}
                       </span>
-                      <button
-                        onClick={() => {
-                          setSelectedApplication(application);
-                          fetchAcceptanceStatus(application.jobs.id);
-                        }}
-                        className="px-4 py-2 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white text-sm font-semibold rounded-lg hover:shadow-md transition-all"
-                      >
-                        View Details
-                      </button>
-                    </div>
                   </div>
 
-                  {/* Quick Info */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-600 mb-1">Venue</p>
-                      <p className="text-sm font-semibold text-[#112D4E] truncate">{application.jobs.venue}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-600 mb-1">Pay Rate</p>
-                      <p className="text-sm font-semibold text-green-600">${application.jobs.pay_rate}/hr</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 col-span-2 sm:col-span-1">
-                      <p className="text-xs text-gray-600 mb-1">Availability</p>
-                      <p className="text-sm font-semibold text-[#112D4E] capitalize">{application.worker_profiles.availability}</p>
-                    </div>
+                  {/* Job Info */}
+                  <div className="bg-slate-50 rounded-xl p-3 mb-4 border border-slate-100">
+                     <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Applied For</span>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">LKR {app.jobs.pay_rate}/hr</span>
+                     </div>
+                     <p className="text-sm font-bold text-slate-700 truncate">{app.jobs.title}</p>
+                     <p className="text-xs text-slate-500 truncate">{app.jobs.venue}</p>
                   </div>
+
+                  {/* Skills Tag Cloud */}
+                  {app.worker_profiles.skills.length > 0 && (
+                     <div className="flex flex-wrap gap-1.5">
+                        {app.worker_profiles.skills.slice(0, 3).map((skill, i) => (
+                           <span key={i} className="px-2 py-0.5 bg-white text-slate-600 rounded text-[10px] font-bold border border-slate-200">
+                             {skill}
+                           </span>
+                        ))}
+                        {app.worker_profiles.skills.length > 3 && (
+                           <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded text-[10px] font-bold border border-slate-200">
+                             +{app.worker_profiles.skills.length - 3}
+                           </span>
+                        )}
+                     </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
-
-        {/* Modal for Application Details */}
-        {selectedApplication && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center pb-20 sm:pb-0 animate-fadeIn"
-            onClick={closeModal}
-          >
-            <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-4xl max-h-[calc(100vh-5rem)] sm:max-h-[90vh] flex flex-col overflow-hidden animate-slideUp"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header */}
-              <div className="shrink-0 bg-linear-to-r from-[#3F72AF] to-[#112D4E] text-white p-4 sm:p-6 rounded-t-3xl z-10 shadow-lg">
-                <div className="flex items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 sm:ring-4 ring-white/30 shrink-0">
-                      <span className="text-white font-extrabold text-xl sm:text-2xl">
-                        {selectedApplication.worker_profiles.name.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-lg sm:text-2xl font-extrabold truncate">{selectedApplication.worker_profiles.name}</h2>
-                      <p className="text-white/90 text-xs sm:text-sm truncate">Applied for: {selectedApplication.jobs.title}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={closeModal}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 flex items-center justify-center transition-all shrink-0"
-                  >
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto overscroll-contain">
-                <div className="p-4 sm:p-6 pb-6">
-                  {/* Status Badge */}
-                  <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                    <span className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold border-2 w-fit ${getStatusColor(selectedApplication.status)}`}>
-                      {selectedApplication.status.charAt(0).toUpperCase() + selectedApplication.status.slice(1)}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-600">
-                      Applied {new Date(selectedApplication.applied_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric"
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Job Details */}
-                    <div className="bg-linear-to-br from-gray-50 to-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
-                      <h4 className="text-base sm:text-xl font-extrabold text-[#112D4E] mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] flex items-center justify-center shrink-0">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                        Job Details
-                      </h4>
-                      <div className="space-y-3 sm:space-y-4">
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Title</p>
-                            <p className="text-sm sm:text-base font-bold text-[#112D4E] truncate">{selectedApplication.jobs.title}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Date</p>
-                            <p className="text-sm sm:text-base font-bold text-[#112D4E] wrap-break-word">
-                            {new Date(selectedApplication.jobs.date).toLocaleDateString("en-US", {
-                              weekday: "long",
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric"
-                            })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Venue</p>
-                            <p className="text-sm sm:text-base font-bold text-[#112D4E] truncate">{selectedApplication.jobs.venue}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Pay Rate</p>
-                            <p className="text-sm sm:text-base font-bold text-green-600">LKR {selectedApplication.jobs.pay_rate}/hour</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Worker Details */}
-                    <div className="bg-linear-to-br from-gray-50 to-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
-                      <h4 className="text-base sm:text-xl font-extrabold text-[#112D4E] mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-linear-to-br from-[#3F72AF] to-[#112D4E] flex items-center justify-center shrink-0">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                        Worker Details
-                      </h4>
-                      <div className="space-y-3 sm:space-y-4">
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Name</p>
-                            <p className="text-sm sm:text-base font-bold text-[#112D4E] truncate">{selectedApplication.worker_profiles.name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">Availability</p>
-                            <p className="text-sm sm:text-base font-bold text-[#112D4E] capitalize wrap-break-word">
-                              {selectedApplication.worker_profiles.availability.split("-").join(" ")}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-pink-100 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-1 sm:mb-2 uppercase tracking-wide">Skills</p>
-                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                              {selectedApplication.worker_profiles.skills.map((skill, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-linear-to-r from-[#DBE2EF] to-[#3F72AF]/20 text-[#112D4E] text-[10px] sm:text-xs font-bold rounded-lg border border-[#3F72AF]/20"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Acceptance Status Information */}
-                  {acceptanceStatus && (
-                    <div className="mt-4 sm:mt-6 bg-linear-to-br from-blue-50 via-white to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-blue-200 shadow-sm">
-                      <h4 className="text-base sm:text-lg font-extrabold text-[#112D4E] mb-3 sm:mb-4 flex items-center gap-2">
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </div>
-                        Staffing Status
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-blue-100 shadow-sm">
-                          <p className="text-xs text-gray-600 mb-1 font-medium">Required</p>
-                          <p className="text-xl sm:text-2xl font-extrabold text-blue-600">{acceptanceStatus.requiredWorkers}</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-green-100 shadow-sm">
-                          <p className="text-xs text-gray-600 mb-1 font-medium">Accepted</p>
-                          <p className="text-xl sm:text-2xl font-extrabold text-green-600">{acceptanceStatus.acceptedCount}</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-orange-100 shadow-sm">
-                          <p className="text-xs text-gray-600 mb-1 font-medium">Remaining</p>
-                          <p className="text-xl sm:text-2xl font-extrabold text-orange-600">{acceptanceStatus.remainingSlots}</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-purple-100 shadow-sm">
-                          <p className="text-xs text-gray-600 mb-1 font-medium">Status</p>
-                          <p className="text-sm sm:text-base font-extrabold capitalize" style={{
-                            color: acceptanceStatus.isFullyStaffed ? '#059669' : '#3F72AF'
-                          }}>
-                            {acceptanceStatus.isFullyStaffed ? 'Full' : 'Open'}
-                          </p>
-                        </div>
-                      </div>
-                      {acceptanceStatus.isFullyStaffed && (
-                        <div className="mt-3 sm:mt-4 bg-green-100 border-2 border-green-300 rounded-lg p-3 sm:p-4">
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div>
-                              <p className="text-sm sm:text-base font-bold text-green-800">Job Fully Staffed</p>
-                              <p className="text-xs sm:text-sm text-green-700 mt-1">You have accepted all required workers for this job.</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {!acceptanceStatus.isFullyStaffed && acceptanceStatus.remainingSlots <= 2 && (
-                        <div className="mt-3 sm:mt-4 bg-yellow-100 border-2 border-yellow-300 rounded-lg p-3 sm:p-4">
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                            <div>
-                              <p className="text-sm sm:text-base font-bold text-yellow-800">Almost Fully Staffed</p>
-                              <p className="text-xs sm:text-sm text-yellow-700 mt-1">Only {acceptanceStatus.remainingSlots} slot{acceptanceStatus.remainingSlots !== 1 ? 's' : ''} remaining.</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  {selectedApplication.status === "pending" && (
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 mt-4 sm:mt-6 border-t-2 border-gray-200 pb-safe">
-                      <button
-                        onClick={() => handleStatusUpdate(selectedApplication.id, "accepted")}
-                        disabled={processing === selectedApplication.id || (acceptanceStatus?.isFullyStaffed ?? false)}
-                        className="group flex-1 relative px-6 sm:px-8 py-3.5 sm:py-4 bg-linear-to-r from-green-500 via-green-600 to-green-700 text-white font-bold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl active:scale-95 sm:hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-linear-to-r from-green-400 to-green-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"></div>
-                        <div className="relative flex items-center justify-center gap-2 sm:gap-3">
-                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <span className="text-sm sm:text-base">
-                            {processing === selectedApplication.id 
-                              ? "Processing..." 
-                              : acceptanceStatus?.isFullyStaffed 
-                                ? "Fully Staffed" 
-                                : "Accept Application"}
-                          </span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(selectedApplication.id, "rejected")}
-                        disabled={processing === selectedApplication.id}
-                        className="group flex-1 relative px-6 sm:px-8 py-3.5 sm:py-4 bg-linear-to-r from-red-500 via-red-600 to-red-700 text-white font-bold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl active:scale-95 sm:hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-linear-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"></div>
-                        <div className="relative flex items-center justify-center gap-2 sm:gap-3">
-                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </div>
-                          <span className="text-sm sm:text-base">
-                            {processing === selectedApplication.id ? "Processing..." : "Reject Application"}
-                          </span>
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
+
+      {/* Detail Modal */}
+      {selectedApplication && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
+           {/* Backdrop */}
+           <div 
+             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+             onClick={closeModal}
+           ></div>
+
+           {/* Modal Card */}
+           <div 
+             className="relative bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slideUp"
+             onClick={(e) => e.stopPropagation()}
+           >
+             {/* Modal Header */}
+             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-lg">
+                      {selectedApplication.worker_profiles.name.charAt(0)}
+                   </div>
+                   <div>
+                      <h2 className="text-lg font-bold text-slate-900 leading-tight">{selectedApplication.worker_profiles.name}</h2>
+                      <p className="text-xs text-slate-500 font-medium">Candidate Profile</p>
+                   </div>
+                </div>
+                <button
+                  onClick={closeModal}
+                  className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+             </div>
+
+             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Details Sections */}
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="border border-slate-100 rounded-xl p-3 bg-slate-50">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Applying For</p>
+                      <p className="text-sm font-bold text-slate-900">{selectedApplication.jobs.title}</p>
+                   </div>
+                   <div className="border border-slate-100 rounded-xl p-3 bg-slate-50">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Availability</p>
+                      <p className="text-sm font-bold text-slate-900 capitalize">{selectedApplication.worker_profiles.availability.replace("-", " ")}</p>
+                   </div>
+                </div>
+
+                {/* Skills */}
+                <div>
+                   <h4 className="text-sm font-bold text-slate-900 mb-3">Skills & Expertise</h4>
+                   <div className="flex flex-wrap gap-2">
+                      {selectedApplication.worker_profiles.skills.map(skill => (
+                         <span key={skill} className="px-3 py-1 bg-white text-slate-700 rounded-lg text-xs font-semibold border border-slate-200 shadow-xs">
+                             {skill}
+                         </span>
+                      ))}
+                   </div>
+                </div>
+
+                {/* Status Info */}
+                {acceptanceStatus && (
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                    <h4 className="text-sm font-bold text-blue-900 mb-2">Staffing Status</h4>
+                    <div className="flex justify-between items-center text-sm">
+                       <span className="text-blue-700">Positions Filled:</span>
+                       <span className="font-bold text-blue-900">{acceptanceStatus.acceptedCount} / {acceptanceStatus.requiredWorkers}</span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-1.5 mt-2">
+                       <div 
+                         className="bg-blue-600 h-1.5 rounded-full transition-all"
+                         style={{ width: `${Math.min(100, (acceptanceStatus.acceptedCount / acceptanceStatus.requiredWorkers) * 100)}%` }}
+                       ></div>
+                    </div>
+                    {acceptanceStatus.isFullyStaffed && (
+                       <p className="text-xs font-bold text-green-600 mt-2 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                          Fully Staffed
+                       </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Info Text */}
+                <div className="text-center">
+                    <p className="text-xs text-slate-400">
+                       Application received on {new Date(selectedApplication.applied_at).toLocaleDateString()} at {new Date(selectedApplication.applied_at).toLocaleTimeString()}
+                    </p>
+                </div>
+             </div>
+
+             {/* Footer Actions */}
+             <div className="p-5 border-t border-slate-100 bg-white">
+                {selectedApplication.status === "pending" ? (
+                   <div className="flex gap-3">
+                      <button
+                         onClick={() => handleStatusUpdate(selectedApplication.id, "rejected")}
+                         disabled={!!processing}
+                         className="flex-1 py-3.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50 active:bg-slate-100 transition-all"
+                      >
+                         Reject
+                      </button>
+                      <button
+                         onClick={() => handleStatusUpdate(selectedApplication.id, "accepted")}
+                         disabled={!!processing || acceptanceStatus?.isFullyStaffed}
+                         className={`flex-1 py-3.5 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all ${
+                             acceptanceStatus?.isFullyStaffed ? "bg-slate-300 cursor-not-allowed" : "bg-slate-900 hover:bg-slate-800"
+                         }`}
+                      >
+                         {processing === selectedApplication.id ? "Processing..." : "Accept Candidate"}
+                      </button>
+                   </div>
+                ) : (
+                   <div className={`w-full py-3.5 rounded-xl text-center font-bold border ${
+                      selectedApplication.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-200' :
+                      selectedApplication.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 
+                      'bg-slate-100 text-slate-500'
+                   }`}>
+                      Is {selectedApplication.status}
+                   </div>
+                )}
+             </div>
+           </div>
+        </div>
+      )}
 
       <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

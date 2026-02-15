@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/app/components/ui/Toast";
-import Header from "@/app/components/Header";
+
 import BottomNav, { NavItem } from "@/app/components/BottomNav";
+import LoadingWave from "@/app/components/ui/LoadingWave";
 import { apiClient } from "@/lib/api-client";
 
 interface Job {
@@ -41,8 +42,7 @@ export default function BusinessJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ type: "error" | "success"; message: string } | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [profileImage, setProfileImage] = useState("");
+
   const [showApplicantsModal, setShowApplicantsModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
@@ -62,14 +62,14 @@ export default function BusinessJobsPage() {
     },
     {
       id: "jobs",
-      label: "Jobs",
+      label: "My Jobs",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
       href: "/jobs/business"
     },
     {
       id: "create",
-      label: "Create",
+      label: "Post Job",
       icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       activeIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
       href: "/jobs/create",
@@ -84,28 +84,13 @@ export default function BusinessJobsPage() {
     }
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie = "access_token=; path=/; max-age=0";
-    router.push("/");
-  };
+
 
   useEffect(() => {
     fetchJobs();
-    fetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
-    try {
-      const json = await apiClient.get("/api/businesses/profile");
-      if (json.profile) {
-        setProfileName(json.profile.company_name || "");
-        setProfileImage(json.profile.logo_url || "");
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
+
 
   const fetchJobs = async () => {
     try {
@@ -208,21 +193,30 @@ export default function BusinessJobsPage() {
     });
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredJobs = jobs.filter(job => 
+    job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    job.venue.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
-        <Header 
-          title="FlexiGo" 
-          subtitle="Business Portal" 
-          userName={profileName}
-          userImage={profileImage}
-          onProfileClick={() => router.push("/profile")}
-          onLogout={handleLogout} 
-        />
+      <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
+         {/* Custom Gradient Header Skeleton */}
+        <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+            <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+                 <div className="flex items-center justify-between mb-5">
+                     <div className="h-10 w-10 bg-white/10 rounded-full animate-pulse"></div>
+                     <div className="h-8 w-32 bg-white/10 rounded-lg animate-pulse"></div>
+                 </div>
+                 <div className="h-12 bg-white/10 rounded-xl animate-pulse"></div>
+            </div>
+        </div>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-            <p className="text-sm text-slate-600 font-medium">Loading jobs...</p>
+          <div className="text-center flex flex-col items-center">
+            <LoadingWave />
+            <p className="text-sm text-slate-500 font-medium mt-4">Loading your jobs...</p>
           </div>
         </div>
         <BottomNav items={businessNavItems} activeTab={activeTab} onTabChange={setActiveTab} />
@@ -231,552 +225,347 @@ export default function BusinessJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] pb-24 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
-      <Header 
-        title="FlexiGo" 
-        subtitle="Business Portal"
-        userName={profileName}
-        userImage={profileImage}
-        onProfileClick={() => router.push("/profile")}
-        onLogout={handleLogout}
-      />
-
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
-      {/* Page Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="text-gray-600 hover:text-[#124E66] transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      {/* Custom Gradient Header */}
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-[#3F72AF] to-[#112D4E] shadow-lg shadow-blue-900/10">
+        <div className="max-w-md mx-auto px-5 pt-6 pb-6">
+          <div className="flex items-center justify-between mb-5">
+             <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                   <h1 className="text-2xl font-bold text-white leading-none">My Jobs</h1>
+                   <p className="text-xs text-blue-100 font-medium mt-1">{filteredJobs.length} active listings</p>
+                </div>
+             </div>
+             
+             {/* Post Job Action */}
+             <Link
+                href="/jobs/create"
+                className="w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+             >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
-              </Link>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Jobs</h1>
-            </div>
-            <Link
-              href="/jobs/create"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#124E66] text-white rounded-lg hover:bg-[#0d3a4d] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+             </Link>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="hidden sm:inline">Create Job</span>
-            </Link>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by title or venue..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-10 pr-3 py-3 rounded-xl border-none leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:text-sm shadow-lg shadow-black/5"
+            />
+             {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">{jobs.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Positions Needed</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {jobs.reduce((sum, job) => sum + job.number_of_workers, 0)}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Positions Filled</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {jobs.reduce((sum, job) => sum + (job.accepted_count || 0), 0)}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg Pay Rate</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${jobs.length > 0 ? (jobs.reduce((sum, job) => sum + job.pay_rate, 0) / jobs.length).toFixed(2) : '0.00'}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+      <main className="max-w-md mx-auto px-5 py-6 space-y-6">
+        {/* Removed Page Header since it's now in the sticky header */}
+
+        {/* Stats Summary - Horizontal Grid */}
+        <div className="grid grid-cols-2 gap-3">
+           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+               </svg>
+             </div>
+             <span className="text-2xl font-bold text-slate-800 leading-none mb-1">{jobs.length}</span>
+             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Total Jobs</span>
+           </div>
+
+           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+             <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+               </svg>
+             </div>
+             <span className="text-2xl font-bold text-slate-800 leading-none mb-1">
+               {jobs.reduce((sum, job) => sum + (job.accepted_count || 0), 0)}
+             </span>
+             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Filled Roles</span>
+           </div>
         </div>
 
         {/* Jobs List */}
-        {jobs.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        {filteredJobs.length === 0 ? (
+          <div className="bg-white rounded-3xl p-10 text-center border border-slate-100 shadow-sm flex flex-col items-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs yet</h3>
-            <p className="text-gray-600 mb-6">Start by creating your first job posting</p>
-            <Link
-              href="/jobs/create"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#124E66] text-white rounded-lg hover:bg-[#0d3a4d] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create Your First Job
-            </Link>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
+              {searchTerm ? "No matches found" : "No jobs posted yet"}
+            </h3>
+            <p className="text-sm text-slate-500 mb-8 max-w-[200px] mx-auto leading-relaxed">
+              {searchTerm ? "Try adjusting your search terms" : "Create your first job posting to start finding workers."}
+            </p>
+            {!searchTerm && (
+              <Link
+                href="/jobs/create"
+                className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95"
+              >
+                Create Your First Job
+              </Link>
+            )}
+             {searchTerm && (
+               <button
+                  onClick={() => setSearchTerm("")}
+                  className="px-6 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-all"
+               >
+                  Clear Search
+               </button>
+             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {jobs.map((job) => (
-              <div key={job.id} className="bg-white rounded-lg border border-gray-200 hover:border-[#124E66]/30 hover:shadow-md transition-all duration-200">
-                {/* Compact Header */}
-                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-3">
-                  <h3 className="text-base font-bold text-gray-900 truncate">{job.title}</h3>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                      Active
-                    </span>
-                    {(job.application_count ?? 0) > 0 ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#124E66] text-white text-xs font-semibold rounded">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                        </svg>
-                        {job.application_count}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">
-                        No applicants
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compact Body */}
-                <div className="px-5 py-4">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {/* Date & Time */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-blue-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Date & Time</p>
-                        <p className="text-sm font-semibold text-gray-900 truncate">{formatDate(job.date)}</p>
-                        <p className="text-xs text-gray-600">{job.time}</p>
-                      </div>
-                    </div>
-
-                    {/* Venue */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-purple-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Venue</p>
-                        <p className="text-sm font-semibold text-gray-900 truncate">{job.venue}</p>
-                      </div>
-                    </div>
-
-                    {/* Duration */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-orange-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Duration</p>
-                        <p className="text-sm font-semibold text-gray-900">{job.working_hours}h</p>
-                      </div>
-                    </div>
-
-                    {/* Pay Rate */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-green-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Pay Rate</p>
-                        <p className="text-sm font-semibold text-gray-900">LKR {job.pay_rate.toFixed(2)}</p>
-                      </div>
-                    </div>
-
-                    {/* Workers */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-indigo-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Workers Needed</p>
-                        <p className="text-sm font-semibold text-gray-900">{job.number_of_workers}</p>
-                      </div>
-                    </div>
-
-                    {/* Staffing Status */}
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-teal-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Staffing Status</p>
-                        <p className={`text-sm font-semibold ${
-                          (job.accepted_count || 0) >= job.number_of_workers 
-                            ? 'text-green-600' 
-                            : (job.accepted_count || 0) > 0 
-                            ? 'text-orange-600' 
-                            : 'text-gray-900'
+          <div className="space-y-4">
+            {filteredJobs.map((job) => (
+              <div key={job.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group">
+                {/* Header */}
+                <div className="p-5 pb-4 border-b border-slate-50">
+                   <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-base font-bold text-slate-900 truncate pr-4">{job.title}</h3>
+                      <span className={`shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${
+                          (job.application_count ?? 0) > 0 
+                          ? 'bg-blue-50 text-blue-700 border-blue-100' 
+                          : 'bg-slate-50 text-slate-500 border-slate-100'
                         }`}>
-                          {job.accepted_count || 0}/{job.number_of_workers} Filled
-                        </p>
+                        {(job.application_count ?? 0) > 0 ? (
+                            <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                {job.application_count} Applicants
+                            </>
+                        ) : 'No Applicants'}
+                      </span>
+                   </div>
+                   <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                      <span>Posted {new Date(job.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                   </div>
+                </div>
+
+                {/* Body */}
+                <div className="p-5 pt-4">
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-4">
+                    {/* Date */}
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0">
+                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                       </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Time</p>
+                        <p className="text-sm font-semibold text-slate-700 truncate">{formatDate(job.date)}</p>
+                        <p className="text-xs text-slate-500 font-medium">{job.time}</p>
+                      </div>
+                    </div>
+
+                    {/* Pay/Workers */}
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Pay</p>
+                        <p className="text-sm font-semibold text-emerald-600">LKR {job.pay_rate}</p>
+                        <p className="text-xs text-slate-500 font-medium">{job.accepted_count || 0}/{job.number_of_workers} Staffed</p>
+                      </div>
+                    </div>
+                    
+                    {/* Location */}
+                    <div className="flex items-start gap-2.5 col-span-2">
+                       <div className="p-1.5 rounded-lg bg-slate-50 text-slate-400 shrink-0">
+                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                       </div>
+                       <div className="min-w-0">
+                           <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Venue</p>
+                           <p className="text-sm font-semibold text-slate-700 truncate">{job.venue}</p>
+                       </div>
                     </div>
                   </div>
 
-                  {/* Skills Row */}
-                  {job.required_skills && job.required_skills.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-                      <div className="shrink-0 w-8 h-8 bg-cyan-50 rounded-md flex items-center justify-center">
-                        <svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500 mb-1.5">Skills</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {job.required_skills.map((skill, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-0.5 bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-medium rounded">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Compact Footer */}
-                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3">
-                  <p className="text-xs text-gray-500">
-                    Created {new Date(job.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </p>
                   <button 
                     onClick={() => fetchApplicants(job.id, job.title)}
-                    className="px-4 py-2 bg-[#124E66] text-white text-sm font-semibold rounded-md hover:bg-[#0d3a4d] transition-colors flex items-center gap-2"
+                    className="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    View Applications
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    Manage Applications
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
       </main>
 
-      {/* Applicants Modal */}
+      {/* Applicants Modal - Premium */}
       {showApplicantsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="bg-linear-to-r from-[#124E66] to-[#0d3a4d] px-6 py-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 min-w-0 mr-3">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white truncate">Applications</h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-blue-100 text-sm truncate">{selectedJobTitle}</p>
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
-                      selectedJobAcceptedCount >= selectedJobWorkersNeeded
-                        ? 'bg-green-500 text-white'
-                        : selectedJobAcceptedCount > 0
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-white/20 text-white'
-                    }`}>
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <span>{selectedJobAcceptedCount}/{selectedJobWorkersNeeded}</span>
-                    </div>
-                  </div>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
+           {/* Backdrop */}
+           <div 
+             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+             onClick={() => setShowApplicantsModal(false)}
+           ></div>
+
+           {/* Modal Card */}
+           <div 
+             className="relative bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slideUp"
+             onClick={(e) => e.stopPropagation()}
+           >
+             {/* Header */}
+             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                   <h2 className="text-xl font-bold text-slate-900">Applications</h2>
+                   <p className="text-xs text-slate-500 font-medium mt-0.5">{selectedJobTitle}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    setShowApplicantsModal(false);
-                    setStatusFilter("all");
-                  }}
-                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors ml-3 shrink-0"
+                  onClick={() => setShowApplicantsModal(false)}
+                  className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
-              </div>
+             </div>
 
-              {/* Summary Stats */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <p className="text-blue-100 text-xs font-medium">Total</p>
-                  <p className="text-white text-lg font-bold">{applicants.length}</p>
+             {/* Tabs & Stats */}
+             <div className="px-6 py-4 border-b border-slate-100 bg-white">
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-1 hide-scrollbar">
+                    {[
+                      { id: "all", label: "All", count: applicants.length },
+                      { id: "pending", label: "Pending", count: applicants.filter(a => a.status === "pending").length },
+                      { id: "accepted", label: "Accepted", count: applicants.filter(a => a.status === "accepted").length },
+                      { id: "rejected", label: "Rejected", count: applicants.filter(a => a.status === "rejected").length }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setStatusFilter(tab.id as any)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+                          statusFilter === tab.id
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        {tab.label} ({tab.count})
+                      </button>
+                    ))}
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <p className="text-blue-100 text-xs font-medium">Accepted</p>
-                  <p className="text-green-300 text-lg font-bold">
-                    {applicants.filter(a => a.status === "accepted").length}
-                  </p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <p className="text-blue-100 text-xs font-medium">Pending</p>
-                  <p className="text-yellow-300 text-lg font-bold">
-                    {applicants.filter(a => a.status === "pending").length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Status Filter Tabs */}
-            <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-              <div className="flex gap-2 overflow-x-auto">
-                {[
-                  { id: "all", label: "All", count: applicants.length },
-                  { id: "pending", label: "Pending", count: applicants.filter(a => a.status === "pending").length },
-                  { id: "accepted", label: "Accepted", count: applicants.filter(a => a.status === "accepted").length },
-                  { id: "rejected", label: "Rejected", count: applicants.filter(a => a.status === "rejected").length }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setStatusFilter(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-                      statusFilter === tab.id
-                        ? "bg-[#124E66] text-white shadow-md"
-                        : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-                    }`}
-                  >
-                    {tab.label} {tab.count > 0 && <span className={`ml-1 ${statusFilter === tab.id ? "text-blue-200" : "text-gray-400"}`}>({tab.count})</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {loadingApplicants ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-3 border-slate-200 border-t-slate-900 mb-3"></div>
-                    <p className="text-sm text-slate-600 font-medium">Loading applicants...</p>
-                  </div>
-                </div>
-              ) : applicants.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No applications yet</h3>
-                  <p className="text-gray-600">This job hasn't received any applications.</p>
-                </div>
-              ) : (
-                (() => {
-                  const filteredApplicants = statusFilter === "all" 
-                    ? applicants 
-                    : applicants.filter(a => a.status === statusFilter);
-
-                  return filteredApplicants.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">No {statusFilter} applications</h3>
-                      <p className="text-sm text-gray-500">Try selecting a different filter</p>
+                
+                {/* Staffing Progress */}
+                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div className="flex-1">
+                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+                            <span>Staffing Progress</span>
+                            <span>{selectedJobAcceptedCount} / {selectedJobWorkersNeeded} Hired</span>
+                        </div>
+                        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                           <div 
+                              className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(100, (selectedJobAcceptedCount / selectedJobWorkersNeeded) * 100)}%` }}
+                           ></div>
+                        </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {filteredApplicants.map((applicant) => {
-                        const statusConfig = {
-                          accepted: {
-                            bgColor: "bg-green-50",
-                            borderColor: "border-green-200",
-                            textColor: "text-green-700",
-                            iconColor: "text-green-600",
-                            icon: (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            )
-                          },
-                          rejected: {
-                            bgColor: "bg-red-50",
-                            borderColor: "border-red-200",
-                            textColor: "text-red-700",
-                            iconColor: "text-red-600",
-                            icon: (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            )
-                          },
-                          pending: {
-                            bgColor: "bg-amber-50",
-                            borderColor: "border-amber-200",
-                            textColor: "text-amber-700",
-                            iconColor: "text-amber-600",
-                            icon: (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            )
-                          }
-                        };
+                </div>
+             </div>
 
-                        const config = statusConfig[applicant.status as keyof typeof statusConfig] || statusConfig.pending;
-
-                        return (
-                          <div 
-                            key={applicant.application_id} 
-                            className={`bg-white border-2 ${config.borderColor} rounded-xl overflow-hidden hover:shadow-lg transition-all`}
-                          >
-                            {/* Status Banner */}
-                            <div className={`${config.bgColor} border-b ${config.borderColor} px-4 py-2.5 flex items-center justify-between`}>
-                              <div className="flex items-center gap-2">
-                                <div className={config.iconColor}>
-                                  {config.icon}
-                                </div>
-                                <span className={`${config.textColor} text-sm font-bold uppercase tracking-wide`}>
-                                  {applicant.status}
-                                </span>
+             {/* Applicant List */}
+             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+               {loadingApplicants ? (
+                 <div className="flex flex-col items-center justify-center py-12">
+                   <LoadingWave />
+                   <p className="text-sm text-slate-500 font-medium mt-4">Loading candidates...</p>
+                 </div>
+               ) : applicants.length === 0 ? (
+                 <div className="text-center py-12">
+                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                   </div>
+                   <h3 className="text-lg font-bold text-slate-900">No applications</h3>
+                   <p className="text-sm text-slate-500 mt-1">Waiting for workers to apply.</p>
+                 </div>
+               ) : (
+                 <div className="space-y-3">
+                   {(() => {
+                      const filtered = statusFilter === "all" ? applicants : applicants.filter(a => a.status === statusFilter);
+                      if (filtered.length === 0) return <p className="text-center text-sm text-slate-500 py-8">No {statusFilter} applicants found.</p>;
+                      
+                      return filtered.map(app => (
+                        <div key={app.application_id} className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+                           <div className="flex justify-between items-start mb-3">
+                              <div>
+                                 <h4 className="font-bold text-slate-900">{app.worker?.name || "Unknown"}</h4>
+                                 <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                                    <span>Applied {new Date(app.applied_at).toLocaleDateString()}</span>
+                                 </div>
                               </div>
-                              <span className="text-xs text-gray-500">
-                                {new Date(applicant.applied_at).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit"
-                                })}
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
+                                app.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
+                                app.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
+                                'bg-amber-50 text-amber-700 border-amber-100'
+                              }`}>
+                                {app.status}
                               </span>
-                            </div>
-
-                            {/* Applicant Details */}
-                            <div className="p-4">
-                              {/* Name */}
-                              <div className="mb-3">
-                                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                  {applicant.worker?.name || "Unknown Worker"}
-                                </h3>
-                              </div>
-
-                              {/* Skills */}
-                              {applicant.worker?.skills && applicant.worker.skills.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Skills</p>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {applicant.worker.skills.map((skill, index) => (
-                                      <span
-                                        key={index}
-                                        className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs rounded-md font-medium"
-                                      >
-                                        {skill}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Availability */}
-                              {applicant.worker?.availability && (
-                                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                                  <svg className="w-4 h-4 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  <span className="font-medium">Available: {applicant.worker.availability}</span>
-                                </div>
-                              )}
-
-                              {/* Action Buttons */}
-                              {applicant.status === "pending" && (
-                                <div className="flex gap-2 pt-3 border-t border-gray-200">
-                                  <button
-                                    onClick={() => handleUpdateApplicationStatus(applicant.application_id, "accepted")}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 active:scale-95 transition-all shadow-sm"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Accept
-                                  </button>
-                                  <button
-                                    onClick={() => handleUpdateApplicationStatus(applicant.application_id, "rejected")}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:scale-95 transition-all shadow-sm"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    Reject
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()
-              )}
-            </div>
-          </div>
+                           </div>
+                           
+                           {/* Skills */}
+                           {app.worker?.skills && (
+                             <div className="flex flex-wrap gap-1.5 mb-4">
+                               {app.worker.skills.map(s => (
+                                 <span key={s} className="px-2 py-0.5 bg-slate-50 text-slate-600 rounded text-[10px] font-bold border border-slate-100">
+                                   {s}
+                                 </span>
+                               ))}
+                             </div>
+                           )}
+                           
+                           {/* Actions */}
+                           {app.status === 'pending' && (
+                             <div className="flex gap-2">
+                               <button 
+                                 onClick={() => handleUpdateApplicationStatus(app.application_id, 'accepted')}
+                                 className="flex-1 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800"
+                               >
+                                 Accept
+                               </button>
+                               <button 
+                                 onClick={() => handleUpdateApplicationStatus(app.application_id, 'rejected')}
+                                 className="flex-1 py-2 bg-white text-slate-700 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50"
+                               >
+                                 Reject
+                               </button>
+                             </div>
+                           )}
+                        </div>
+                      ));
+                   })()}
+                 </div>
+               )}
+             </div>
+           </div>
         </div>
       )}
 
