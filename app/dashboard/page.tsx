@@ -123,7 +123,7 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
         <div className="bg-linear-to-br from-[#3F72AF] to-[#112D4E] rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2">Welcome, {userName}! 👋</h2>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2">Welcome, {profileName?.split(' ')[0] || userName}! 👋</h2>
               <p className="text-sm sm:text-base text-white/80 font-medium">Manage your events and find talented workers</p>
             </div>
             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -363,7 +363,7 @@ function WorkerDashboard({ userName, onLogout }: { userName: string; onLogout: (
         {/* Welcome Section */}
         <div className="relative overflow-hidden bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-3xl p-6 shadow-xl shadow-blue-900/10">
           <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-white mb-1.5">Hello, {userName.split(' ')[0]}! 👋</h2>
+            <h2 className="text-2xl font-bold text-white mb-1.5">Hello, {(profileName || userName).split(' ')[0]}! 👋</h2>
             <p className="text-blue-100 text-sm font-medium">Ready for your next shift?</p>
           </div>
           <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
