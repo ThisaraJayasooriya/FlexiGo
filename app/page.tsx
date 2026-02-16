@@ -1,8 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import SplashScreen from "./components/SplashScreen";
 
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <main className="min-h-screen bg-linear-to-br from-[#F9F7F7] via-[#DBE2EF]/20 to-[#F9F7F7] relative overflow-hidden font-sans antialiased scroll-smooth">
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DBE2EF]/30 rounded-full blur-3xl"></div>
