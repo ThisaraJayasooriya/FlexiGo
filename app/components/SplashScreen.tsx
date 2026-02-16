@@ -77,7 +77,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
                 damping: 20, 
                 duration: 1.5 
               }}
-              className="w-28 h-28 sm:w-36 sm:h-36 bg-white rounded-[2rem] shadow-2xl flex items-center justify-center mb-10 relative overflow-hidden group"
+              className="w-32 h-32 sm:w-40 sm:h-40 bg-white/10 backdrop-blur-md border border-white/20 rounded-[2.5rem] shadow-[0_0_40px_rgba(59,130,246,0.3)] flex items-center justify-center mb-10 relative overflow-hidden group ring-1 ring-white/30"
             >
               {/* Shimmer Effect */}
               <motion.div
@@ -90,7 +90,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
               <img 
                 src="/icons/flexigo_logo.jpg" 
                 alt="FlexiGo Logo" 
-                className="w-[85%] h-[85%] object-contain drop-shadow-md" 
+                className="w-[75%] h-[75%] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] rounded-xl" 
               />
             </motion.div>
 
