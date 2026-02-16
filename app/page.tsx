@@ -65,11 +65,15 @@ export default function Home() {
                     </svg>
                   </span>
                 </Link>
+
                 <Link 
-                  href="#features" 
-                  className="px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-sm text-[#112D4E] text-base sm:text-lg font-bold rounded-2xl border-2 border-[#112D4E]/20 hover:bg-[#112D4E] hover:text-white hover:border-[#112D4E] transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95"
+                  href="/install" 
+                  className="px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-sm text-[#112D4E] text-base sm:text-lg font-bold rounded-2xl border-2 border-[#112D4E]/20 hover:bg-[#3F72AF] hover:text-white hover:border-[#3F72AF] transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  Learn More
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Install App
                 </Link>
               </div>
 
