@@ -121,10 +121,10 @@ export async function GET(req: Request) {
         const jobSkills = job.required_skills || [];
         if (jobSkills.length > 0) {
             const matches = jobSkills.filter((s: string) => workerSkills.includes(s));
-            score += (matches.length / jobSkills.length) * 100;
+            score += (matches.length / jobSkills.length) * 70;
         } else {
             // If job has no skill requirements, it's a general match -> medium score
-            score += 50; 
+            score += 35; 
         }
 
         // Distance Decay (Bonus points for being very close)
