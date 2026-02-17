@@ -172,10 +172,9 @@ export default function CreateWorkerProfile() {
                 required
               >
                 <option value="">Select your availability</option>
-                <option value="Weekdays">Weekdays</option>
-                <option value="Weekends">Weekends</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Flexible">Flexible</option>
+                <option value="Weekdays">Weekdays (Mon-Fri)</option>
+                <option value="Weekends">Weekends (Sat-Sun)</option>
+                <option value="Flexible">Flexible (Any Day)</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">When are you typically available to work?</p>
             </div>

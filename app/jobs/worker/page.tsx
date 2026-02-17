@@ -27,6 +27,7 @@ export default function WorkerJobsPage() {
   const [activeTab, setActiveTab] = useState("jobs");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]); // New State
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkill, setSelectedSkill] = useState("");
@@ -65,6 +66,7 @@ export default function WorkerJobsPage() {
 
   useEffect(() => {
     fetchJobs();
+    fetchRecommendedJobs(); // Fetch recommendations
   }, []);
 
   useEffect(() => {
@@ -83,6 +85,15 @@ export default function WorkerJobsPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecommendedJobs = async () => {
+    try {
+      const json = await apiClient.get("/api/jobs/recommended");
+      setRecommendedJobs(json.jobs || []);
+    } catch (error) {
+      console.error("Failed to load recommendations:", error);
     }
   };
 
@@ -234,6 +245,60 @@ export default function WorkerJobsPage() {
           </div>
         </div>
       </div>
+
+      {/* Recommended Section */}
+      {recommendedJobs.length > 0 && !searchTerm && !selectedSkill && (
+        <section className="px-5 pt-2 pb-4 max-w-md mx-auto w-full">
+            <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Recommended For You
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
+              {recommendedJobs.map((job) => (
+                <div 
+                  key={job.id} 
+                  className="min-w-[260px] bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl p-4 text-white shadow-lg shadow-blue-900/20 snap-center relative overflow-hidden"
+                >
+                    {/* Background decoration */}
+                    <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-white/10 blur-xl"></div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-2">
+                           <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+                              {job.has_applied ? "Applied" : "Best Match"}
+                           </span>
+                           <span className="text-amber-300 font-bold text-xs">
+                              {(job as any).score ? `${Math.round((job as any).score)}% Match` : ''}
+                           </span>
+                        </div>
+                        
+                        <h3 className="font-bold text-lg mb-1 truncate">{job.title}</h3>
+                        <p className="text-blue-100 text-xs mb-3 flex items-center gap-1">
+                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                           {job.venue}
+                        </p>
+                        
+                        <div className="flex items-center justify-between mt-4">
+                           <div className="text-white">
+                              <span className="text-xl font-bold">LKR {job.pay_rate}</span>
+                              <span className="text-[10px] opacity-70">/hr</span>
+                           </div>
+                           <button 
+                             onClick={() => handleApply(job.id)}
+                             disabled={job.has_applied}
+                             className="bg-white text-blue-900 px-4 py-2 rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                           >
+                             {job.has_applied ? "Sent" : "Apply"}
+                           </button>
+                        </div>
+                    </div>
+                </div>
+              ))}
+            </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <main className="px-5 py-6 max-w-md mx-auto w-full space-y-4">
