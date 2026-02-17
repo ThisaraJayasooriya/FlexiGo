@@ -248,49 +248,70 @@ export default function WorkerJobsPage() {
 
       {/* Recommended Section */}
       {recommendedJobs.length > 0 && !searchTerm && !selectedSkill && (
-        <section className="px-5 pt-2 pb-4 max-w-md mx-auto w-full">
-            <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Recommended For You
-            </h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
+        <section className="px-5 pt-4 pb-6 max-w-md mx-auto w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </span>
+                Recommended For You
+              </h2>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Top {recommendedJobs.length}</span>
+            </div>
+            
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar -mx-5 px-5">
               {recommendedJobs.map((job) => (
                 <div 
                   key={job.id} 
-                  className="min-w-[260px] bg-gradient-to-br from-[#3F72AF] to-[#112D4E] rounded-2xl p-4 text-white shadow-lg shadow-blue-900/20 snap-center relative overflow-hidden"
+                  className="min-w-[280px] group relative bg-slate-900 rounded-[24px] p-5 text-white shadow-xl shadow-slate-900/20 snap-center overflow-hidden transition-transform active:scale-[0.98]"
                 >
-                    {/* Background decoration */}
-                    <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-white/10 blur-xl"></div>
+                    {/* Premium Animated Background */}
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-[#3F72AF] rounded-full mix-blend-screen filter blur-[60px] opacity-20 group-hover:opacity-30 transition-opacity duration-700 -mr-10 -mt-10"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#112D4E] rounded-full mix-blend-screen filter blur-[40px] opacity-40 group-hover:opacity-50 transition-opacity duration-700 -ml-10 -mb-10"></div>
                     
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-2">
-                           <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
-                              {job.has_applied ? "Applied" : "Best Match"}
-                           </span>
-                           <span className="text-amber-300 font-bold text-xs">
-                              {(job as any).score ? `${Math.round((job as any).score)}% Match` : ''}
-                           </span>
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-3">
+                           <div className="flex gap-2">
+                             {job.has_applied ? (
+                               <span className="inline-flex items-center gap-1 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 px-2.5 py-1 rounded-full text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                  Applied
+                               </span>
+                             ) : (
+                               <span className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[10px] font-bold text-blue-100 uppercase tracking-wide">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>
+                                  {(job as any).score ? `${Math.round((job as any).score)}% Match` : 'Best Match'}
+                               </span>
+                             )}
+                           </div>
                         </div>
                         
-                        <h3 className="font-bold text-lg mb-1 truncate">{job.title}</h3>
-                        <p className="text-blue-100 text-xs mb-3 flex items-center gap-1">
-                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                        <h3 className="font-bold text-xl leading-tight mb-1 line-clamp-2">{job.title}</h3>
+                        <p className="text-slate-400 text-xs font-medium mb-4 flex items-center gap-1.5">
+                           <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                            {job.venue}
                         </p>
                         
-                        <div className="flex items-center justify-between mt-4">
-                           <div className="text-white">
-                              <span className="text-xl font-bold">LKR {job.pay_rate}</span>
-                              <span className="text-[10px] opacity-70">/hr</span>
+                        <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between gap-3">
+                           <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Pay Rate</p>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-lg font-bold text-white">LKR {job.pay_rate}</span>
+                                <span className="text-xs text-slate-400 font-medium">/hr</span>
+                              </div>
                            </div>
                            <button 
                              onClick={() => handleApply(job.id)}
                              disabled={job.has_applied}
-                             className="bg-white text-blue-900 px-4 py-2 rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-lg ${
+                                job.has_applied 
+                                  ? "bg-white/5 text-slate-400 cursor-not-allowed" 
+                                  : "bg-white text-slate-900 hover:bg-blue-50 shadow-white/10"
+                             }`}
                            >
-                             {job.has_applied ? "Sent" : "Apply"}
+                             {job.has_applied ? "View Status" : "Quick Apply"}
                            </button>
                         </div>
                     </div>
