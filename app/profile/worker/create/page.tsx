@@ -13,6 +13,7 @@ export default function CreateWorkerProfile() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
+    phone: "",
     skills: [] as string[],
     availability: "",
   });
@@ -52,6 +53,7 @@ export default function CreateWorkerProfile() {
     try {
       const json = await apiClient.post("/api/workers/profile/create", {
         name: formData.name,
+        phone: formData.phone,
         skills: formData.skills,
         availability: formData.availability,
         city: location.city,
@@ -133,6 +135,24 @@ export default function CreateWorkerProfile() {
                 required
               />
               <p className="mt-1 text-xs text-gray-500">Your legal name as it appears on official documents</p>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <svg className="w-5 h-5 text-[#124E66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Phone Number
+              </label>
+              <Input
+                type="tel"
+                placeholder="+94 7X XXX XXXX"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+              />
+              <p className="mt-1 text-xs text-gray-500">Contact number for potential employers</p>
             </div>
 
             {/* Skills */}

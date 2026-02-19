@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       .upsert({ 
         user_id, 
         name: validation.data.name,
+        phone: validation.data.phone,
         skills: validation.data.skills,
         availability: validation.data.availability,
         city: validation.data.city,

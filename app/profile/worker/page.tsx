@@ -24,6 +24,7 @@ export default function WorkerProfile() {
   
   // Edit form states
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillError, setSkillError] = useState<string>("");
   const [availability, setAvailability] = useState("");
@@ -82,6 +83,7 @@ export default function WorkerProfile() {
       
       // Set form values
       setName(json.profile.name || "");
+      setPhone(json.profile.phone || "");
       setSkills(json.profile.skills || []);
       setAvailability(json.profile.availability || "");
       
@@ -136,6 +138,7 @@ export default function WorkerProfile() {
     try {
       const json = await apiClient.put("/api/workers/profile", {
         name,
+        phone,
         skills,
         availability,
         city: location.city,
@@ -224,6 +227,11 @@ export default function WorkerProfile() {
             
             <h1 className="text-3xl font-bold text-white mb-1 shadow-sm">{profile?.name}</h1>
             <p className="text-blue-100 font-medium text-sm tracking-wide">{email}</p>
+            {profile?.phone && (
+                <p className="text-blue-200 font-bold text-xs mt-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                   {profile.phone}
+                </p>
+            )}
 
             {/* Quick Stats on Gradient */}
             {!editing && (
@@ -281,6 +289,22 @@ export default function WorkerProfile() {
                          placeholder="Full Name"
                        />
                        <label className="absolute -top-2 left-4 bg-white px-1 text-[10px] font-bold text-blue-500 opacity-0 group-focus-within:opacity-100 transition-all transform scale-90 group-focus-within:scale-100">FULL NAME</label>
+                    </div>
+
+                    <div className="group relative">
+                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                       </div>
+                       <input
+                         type="tel"
+                         value={phone}
+                         onChange={(e) => setPhone(e.target.value)}
+                         className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 placeholder-slate-400"
+                         placeholder="Phone Number (+94 ...)"
+                       />
+                       <label className="absolute -top-2 left-4 bg-white px-1 text-[10px] font-bold text-blue-500 opacity-0 group-focus-within:opacity-100 transition-all transform scale-90 group-focus-within:scale-100">PHONE</label>
                     </div>
 
                     <div className="group relative">

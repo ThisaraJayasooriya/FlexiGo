@@ -9,6 +9,11 @@ export const createWorkerProfileSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must not exceed 100 characters")
     .regex(/^[a-zA-Z\s'-]+$/, "Name must contain only letters, spaces, hyphens, and apostrophes"),
+
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .regex(/^\+?[\d\s-]+$/, "Invalid phone number format"),
   
   skills: z
     .array(z.string())
