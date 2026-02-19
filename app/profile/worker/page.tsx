@@ -296,10 +296,9 @@ export default function WorkerProfile() {
                            className="w-full pl-12 pr-10 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-bold text-slate-800 appearance-none cursor-pointer"
                          >
                            <option value="">Select Availability</option>
-                           <option value="full-time">Full Time</option>
-                           <option value="part-time">Part Time</option>
-                           <option value="weekends">Weekends Only</option>
-                           <option value="flexible">Flexible</option>
+                           <option value="Weekdays">Weekdays (Mon-Fri)</option>
+                           <option value="Weekends">Weekends (Sat-Sun)</option>
+                           <option value="Flexible">Flexible (Any Day)</option>
                          </select>
                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
