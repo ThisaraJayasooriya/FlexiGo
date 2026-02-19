@@ -41,6 +41,9 @@ export async function GET(req: Request) {
         number_of_workers,
         status,
         created_at,
+        business_profiles (
+          phone
+        ),
         applications (
           id
         )

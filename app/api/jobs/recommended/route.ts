@@ -67,6 +67,9 @@ export async function GET(req: Request) {
         pay_rate,
         required_skills,
         created_at,
+        business_profiles (
+          phone
+        ),
         applications (worker_id)
       `)
       .eq("status", "open")

@@ -428,6 +428,7 @@ export default function WorkerJobsPage() {
                   </div>
 
                    {/* Skills & Action Footer */}
+                   {/* Skills & Action Footer */}
                   <div className="space-y-4">
                      {job.required_skills && job.required_skills.length > 0 && (
                       <div className="flex flex-wrap gap-2">
@@ -442,17 +443,32 @@ export default function WorkerJobsPage() {
                       </div>
                     )}
                     
-                    <button
-                      onClick={() => handleApply(job.id)}
-                      disabled={job.has_applied}
-                      className={`w-full py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide transition-all transform active:scale-[0.98] ${
-                        job.has_applied
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
-                          : "bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5"
-                      }`}
-                    >
-                      {job.has_applied ? "Application Sent" : "Apply Now"}
-                    </button>
+                    <div className="flex gap-3">
+                        {/* Contact Button */}
+                        {(job as any).business_profiles?.phone && (
+                            <a 
+                                href={`tel:${(job as any).business_profiles.phone}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-colors shadow-sm"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </a>
+                        )}
+
+                        <button
+                          onClick={() => handleApply(job.id)}
+                          disabled={job.has_applied}
+                          className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide transition-all transform active:scale-[0.98] ${
+                            job.has_applied
+                              ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                              : "bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5"
+                          }`}
+                        >
+                          {job.has_applied ? "Application Sent" : "Apply Now"}
+                        </button>
+                    </div>
                   </div>
                 </div>
               </div>
