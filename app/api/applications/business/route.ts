@@ -47,7 +47,8 @@ export async function GET(req: Request) {
           user_id,
           name,
           skills,
-          availability
+          availability,
+          phone
         )
       `)
       .eq("jobs.business_id", business_id)

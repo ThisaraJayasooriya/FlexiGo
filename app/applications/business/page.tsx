@@ -24,6 +24,7 @@ interface Application {
     name: string;
     skills: string[];
     availability: string;
+    phone?: string;
   };
 }
 
@@ -300,6 +301,19 @@ export default function BusinessApplicationsPage() {
                         <div>
                            <h3 className="text-base font-bold text-slate-900 leading-tight">{app.worker_profiles.name}</h3>
                            <p className="text-xs text-slate-500 font-medium mt-0.5">Applied {new Date(app.applied_at).toLocaleDateString()}</p>
+                           {app.worker_profiles.phone && (
+                              <div className="flex items-center gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
+                                <a 
+                                  href={`tel:${app.worker_profiles.phone}`}
+                                  className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-1"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  {app.worker_profiles.phone}
+                                </a>
+                              </div>
+                           )}
                         </div>
                      </div>
                      <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide border ${
@@ -366,6 +380,20 @@ export default function BusinessApplicationsPage() {
                    <div>
                       <h2 className="text-lg font-bold text-slate-900 leading-tight">{selectedApplication.worker_profiles.name}</h2>
                       <p className="text-xs text-slate-500 font-medium">Candidate Profile</p>
+                      {selectedApplication.worker_profiles.phone && (
+                         <div className="flex items-center gap-2 mt-1">
+                           <a 
+                             href={`tel:${selectedApplication.worker_profiles.phone}`}
+                             className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-1"
+                             onClick={(e) => e.stopPropagation()}
+                           >
+                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                             </svg>
+                             {selectedApplication.worker_profiles.phone}
+                           </a>
+                         </div>
+                      )}
                    </div>
                 </div>
                 <button

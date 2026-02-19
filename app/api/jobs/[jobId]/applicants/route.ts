@@ -61,7 +61,7 @@ export async function GET(
 
     const { data: profiles, error: profileErr } = await supabaseAdmin
       .from("worker_profiles")
-      .select("user_id, name, skills, availability")
+      .select("user_id, name, skills, availability, phone")
       .in("user_id", workerIds);
 
     if (profileErr) {
