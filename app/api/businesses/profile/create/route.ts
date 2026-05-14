@@ -1,33 +1,20 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { businessProfiles, userRoles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
 
-    const { data: userData, error: userError } =
-      await supabaseAdmin.auth.getUser(token);
-
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
     if (userError || !userData.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user_id = userData.user.id;
-
-    //  Read form data
     const formData = await req.formData();
 
     const company_name = formData.get("company_name") as string;
@@ -39,82 +26,47 @@ export async function POST(req: Request) {
     const years_experience = formData.get("years_experience")
       ? Number(formData.get("years_experience"))
       : null;
-
-    // social_links comes as JSON string
     const social_links_raw = formData.get("social_links") as string | null;
-    const social_links = social_links_raw
-      ? JSON.parse(social_links_raw)
-      : [];
-
+    const social_links = social_links_raw ? JSON.parse(social_links_raw) : [];
     const logo = formData.get("logo") as File | null;
 
     let logo_url: string | null = null;
 
-    //  Upload logo if provided
+    // Upload logo — Supabase Storage stays
     if (logo) {
       const ext = logo.name.split(".").pop();
       const filePath = `logos/${user_id}.${ext}`;
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from("business-logos")
-        .upload(filePath, logo, {
-          upsert: true,
-          contentType: logo.type
-        });
+        .upload(filePath, logo, { upsert: true, contentType: logo.type });
 
       if (uploadError) {
-        return NextResponse.json(
-          { error: uploadError.message },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: uploadError.message }, { status: 400 });
       }
 
-      const { data } = supabaseAdmin.storage
-        .from("business-logos")
-        .getPublicUrl(filePath);
-
+      const { data } = supabaseAdmin.storage.from("business-logos").getPublicUrl(filePath);
       logo_url = data.publicUrl;
     }
 
-    //  Upsert business profile
-    const { data, error } = await supabaseAdmin
-      .from("business_profiles")
-      .upsert(
-        {
-          user_id,
-          company_name,
-          description,
-          logo_url,
-          business_type,
-          location,
-          phone,
-          website,
-          social_links,
-          years_experience
+    // Upsert business profile using Drizzle
+    const [profile] = await db
+      .insert(businessProfiles)
+      .values({ user_id, company_name, description, logo_url, business_type, location, phone, website, social_links, years_experience })
+      .onConflictDoUpdate({
+        target: businessProfiles.user_id,
+        set: {
+          company_name, description, business_type, location, phone, website, social_links, years_experience,
+          ...(logo_url && { logo_url }),
         },
-        { onConflict: "user_id" }
-      )
-      .select()
-      .single();
+      })
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    // Mark onboarding complete
+    await db.update(userRoles).set({ first_login_complete: true }).where(eq(userRoles.user_id, user_id));
 
-    //  Mark onboarding complete
-    await supabaseAdmin
-      .from("user_roles")
-      .update({ first_login_complete: true })
-      .eq("user_id", user_id);
-
-    return NextResponse.json({
-      message: "Business profile completed",
-      profile: data
-    });
+    return NextResponse.json({ message: "Business profile completed", profile });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

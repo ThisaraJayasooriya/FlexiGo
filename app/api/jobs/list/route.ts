@@ -1,66 +1,57 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: { autoRefreshToken: false, persistSession: false }
-  }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { jobs, applications, businessProfiles } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
-    //  Get worker from token
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: userData, error: userErr } =
-      await supabaseAdmin.auth.getUser(token);
-
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
     if (userErr || !userData.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const worker_id = userData.user.id;
 
-    //  Fetch jobs + applications by this worker
-    const { data, error } = await supabaseAdmin
-      .from("jobs")
-      .select(`
-        id,
-        title,
-        date,
-        time,
-        working_hours,
-        venue,
-        pay_rate,
-        required_skills,
-        number_of_workers,
-        status,
-        created_at,
-        business_profiles (
-          phone
-        ),
-        applications (
-          id
-        )
-      `)
-      .eq("status", "open")
-      .eq("applications.worker_id", worker_id)
-      .order("created_at", { ascending: false });
+    // Fetch open jobs with business phone
+    const openJobs = await db
+      .select({
+        id: jobs.id,
+        business_id: jobs.business_id,
+        title: jobs.title,
+        date: jobs.date,
+        time: jobs.time,
+        working_hours: jobs.working_hours,
+        venue: jobs.venue,
+        pay_rate: jobs.pay_rate,
+        required_skills: jobs.required_skills,
+        number_of_workers: jobs.number_of_workers,
+        status: jobs.status,
+        created_at: jobs.created_at,
+        business_profiles: {
+          phone: businessProfiles.phone,
+        },
+      })
+      .from(jobs)
+      .leftJoin(businessProfiles, eq(jobs.business_id, businessProfiles.user_id))
+      .where(eq(jobs.status, "open"))
+      .orderBy(jobs.created_at);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    // Fetch this worker's application job IDs in one query
+    const workerApps = await db
+      .select({ job_id: applications.job_id })
+      .from(applications)
+      .where(eq(applications.worker_id, worker_id));
 
-    //  Add has_applied flag
-    const jobsWithAppliedFlag = data.map((job: any) => ({
+    const appliedJobIds = new Set(workerApps.map((a) => a.job_id));
+
+    // Add has_applied flag
+    const jobsWithAppliedFlag = openJobs.map((job) => ({
       ...job,
-      has_applied: job.applications.length > 0,
-      applications: undefined // remove raw applications array
+      has_applied: appliedJobIds.has(job.id),
     }));
 
     return NextResponse.json({ jobs: jobsWithAppliedFlag });

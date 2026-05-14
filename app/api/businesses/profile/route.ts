@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { businessProfiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -22,24 +14,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user_id = userData.user.id;
+    const [profile] = await db
+      .select()
+      .from(businessProfiles)
+      .where(eq(businessProfiles.user_id, userData.user.id));
 
-    // Fetch business profile
-    const { data, error } = await supabaseAdmin
-      .from("business_profiles")
-      .select("*")
-      .eq("user_id", user_id)
-      .maybeSingle();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    // If no profile exists, return null profile with email
-    return NextResponse.json({
-      profile: data || null,
-      email: userData.user.email
-    });
+    return NextResponse.json({ profile: profile || null, email: userData.user.email });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -56,8 +36,8 @@ export async function PUT(req: Request) {
     }
 
     const user_id = userData.user.id;
-
     const formData = await req.formData();
+
     const company_name = formData.get("company_name") as string;
     const description = formData.get("description") as string;
     const business_type = formData.get("business_type") as string | null;
@@ -71,60 +51,32 @@ export async function PUT(req: Request) {
 
     let logo_url: string | null = null;
 
-    // Upload new logo if provided
     if (logo) {
       const ext = logo.name.split(".").pop();
       const filePath = `logos/${user_id}.${ext}`;
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from("business-logos")
-        .upload(filePath, logo, {
-          upsert: true,
-          contentType: logo.type
-        });
+        .upload(filePath, logo, { upsert: true, contentType: logo.type });
 
       if (uploadError) {
         return NextResponse.json({ error: uploadError.message }, { status: 400 });
       }
 
-      const { data } = supabaseAdmin.storage
-        .from("business-logos")
-        .getPublicUrl(filePath);
-
+      const { data } = supabaseAdmin.storage.from("business-logos").getPublicUrl(filePath);
       logo_url = data.publicUrl;
     }
 
-    // Update business profile
-    const updateData: any = {
-      company_name,
-      description,
-      business_type,
-      location,
-      phone,
-      website,
-      social_links,
-      years_experience
-    };
+    const updateData: any = { company_name, description, business_type, location, phone, website, social_links, years_experience };
+    if (logo_url) updateData.logo_url = logo_url;
 
-    if (logo_url) {
-      updateData.logo_url = logo_url;
-    }
+    const [profile] = await db
+      .update(businessProfiles)
+      .set(updateData)
+      .where(eq(businessProfiles.user_id, user_id))
+      .returning();
 
-    const { data, error } = await supabaseAdmin
-      .from("business_profiles")
-      .update(updateData)
-      .eq("user_id", user_id)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({
-      message: "Business profile updated",
-      profile: data
-    });
+    return NextResponse.json({ message: "Business profile updated", profile });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

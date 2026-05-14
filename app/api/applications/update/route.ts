@@ -1,24 +1,15 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: { autoRefreshToken: false, persistSession: false }
-  }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { applications, jobs } from "@/db/schema";
+import { eq, and, count } from "drizzle-orm";
 
 export async function PATCH(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: userData, error: authError } =
-      await supabaseAdmin.auth.getUser(token);
-
+    const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !userData.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -27,130 +18,90 @@ export async function PATCH(req: Request) {
     const { applicationId, status } = await req.json();
 
     if (!applicationId || !status) {
-      return NextResponse.json(
-        { error: "Application ID and status are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Application ID and status are required" }, { status: 400 });
     }
 
     if (!["accepted", "rejected"].includes(status)) {
-      return NextResponse.json(
-        { error: "Status must be 'accepted' or 'rejected'" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Status must be 'accepted' or 'rejected'" }, { status: 400 });
     }
 
-    // Verify the application belongs to this business
-    const { data: application, error: fetchError } = await supabaseAdmin
-      .from("applications")
-      .select("id, job_id, jobs(business_id)")
-      .eq("id", applicationId)
-      .single();
+    // Fetch application and join job to verify business ownership
+    const [app] = await db
+      .select({
+        id: applications.id,
+        job_id: applications.job_id,
+        business_id: jobs.business_id,
+      })
+      .from(applications)
+      .innerJoin(jobs, eq(applications.job_id, jobs.id))
+      .where(eq(applications.id, applicationId));
 
-    if (fetchError || !application) {
-      return NextResponse.json(
-        { error: "Application not found" },
-        { status: 404 }
-      );
+    if (!app) return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    if (app.business_id !== business_id) {
+      return NextResponse.json({ error: "Unauthorized to update this application" }, { status: 403 });
     }
 
-    // Type assertion for the nested jobs object
-    const jobs = application.jobs as any;
-    if (!jobs || jobs.business_id !== business_id) {
-      return NextResponse.json(
-        { error: "Unauthorized to update this application" },
-        { status: 403 }
-      );
-    }
-
-    // If accepting an application, check if we've reached the worker limit
+    // If accepting, enforce worker limit
     if (status === "accepted") {
-      // Get the job details
-      const { data: job, error: jobError } = await supabaseAdmin
-        .from("jobs")
-        .select("id, number_of_workers")
-        .eq("id", application.job_id)
-        .single();
+      const [job] = await db
+        .select({ number_of_workers: jobs.number_of_workers })
+        .from(jobs)
+        .where(eq(jobs.id, app.job_id));
 
-      if (jobError || !job) {
-        return NextResponse.json(
-          { error: "Job not found" },
-          { status: 404 }
-        );
-      }
+      if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
 
-      // Count currently accepted applications
-      const { count, error: countError } = await supabaseAdmin
-        .from("applications")
-        .select("*", { count: "exact", head: true })
-        .eq("job_id", application.job_id)
-        .eq("status", "accepted");
+      const [{ value: currentlyAccepted }] = await db
+        .select({ value: count() })
+        .from(applications)
+        .where(and(eq(applications.job_id, app.job_id), eq(applications.status, "accepted")));
 
-      if (countError) {
-        return NextResponse.json(
-          { error: countError.message },
-          { status: 400 }
-        );
-      }
-
-      const currentlyAccepted = count || 0;
-
-      // Check if accepting this application would exceed the limit
       if (currentlyAccepted >= job.number_of_workers) {
         return NextResponse.json(
           {
             error: "Cannot accept more workers",
-            message: `You have already accepted ${currentlyAccepted} out of ${job.number_of_workers} required workers for this job. You cannot accept more applications.`,
+            message: `You have already accepted ${currentlyAccepted} out of ${job.number_of_workers} required workers.`,
             acceptedCount: currentlyAccepted,
-            requiredWorkers: job.number_of_workers
+            requiredWorkers: job.number_of_workers,
           },
           { status: 400 }
         );
       }
     }
 
-    // Update the application status
-    const { data, error } = await supabaseAdmin
-      .from("applications")
-      .update({ status })
-      .eq("id", applicationId)
-      .select()
-      .single();
+    // Update application status
+    const [updated] = await db
+      .update(applications)
+      .set({ status })
+      .where(eq(applications.id, applicationId))
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    // If we just accepted an application, include staffing info in response
+    // If accepted, include staffing info
     if (status === "accepted") {
-      const { data: job } = await supabaseAdmin
-        .from("jobs")
-        .select("number_of_workers")
-        .eq("id", application.job_id)
-        .single();
+      const [job] = await db
+        .select({ number_of_workers: jobs.number_of_workers })
+        .from(jobs)
+        .where(eq(jobs.id, app.job_id));
 
-      const { count } = await supabaseAdmin
-        .from("applications")
-        .select("*", { count: "exact", head: true })
-        .eq("job_id", application.job_id)
-        .eq("status", "accepted");
+      const [{ value: acceptedCount }] = await db
+        .select({ value: count() })
+        .from(applications)
+        .where(and(eq(applications.job_id, app.job_id), eq(applications.status, "accepted")));
 
-      const acceptedCount = count || 0;
       const requiredWorkers = job?.number_of_workers || 0;
       const remainingSlots = Math.max(0, requiredWorkers - acceptedCount);
 
-      return NextResponse.json({ 
-        application: data,
+      return NextResponse.json({
+        application: updated,
         staffingInfo: {
           acceptedCount,
           requiredWorkers,
           remainingSlots,
-          isFullyStaffed: acceptedCount >= requiredWorkers
-        }
+          isFullyStaffed: acceptedCount >= requiredWorkers,
+        },
       });
     }
 
-    return NextResponse.json({ application: data });
+    return NextResponse.json({ application: updated });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

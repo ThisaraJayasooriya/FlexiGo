@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { userRoles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -22,13 +14,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from("user_roles")
-      .select("role, first_login_complete")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
+    const [data] = await db
+      .select({ role: userRoles.role, first_login_complete: userRoles.first_login_complete })
+      .from(userRoles)
+      .where(eq(userRoles.user_id, userData.user.id));
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     if (!data) return NextResponse.json({ error: "User role not found" }, { status: 404 });
 
     return NextResponse.json(data);

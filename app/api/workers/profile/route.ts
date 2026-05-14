@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { workerProfiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { updateWorkerProfileSchema } from "@/lib/validators/workerSchemas";
 import type { ZodIssue } from "zod";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 export async function GET(req: Request) {
   try {
@@ -24,23 +16,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user_id = userData.user.id;
+    const [profile] = await db
+      .select()
+      .from(workerProfiles)
+      .where(eq(workerProfiles.user_id, userData.user.id));
 
-    // Fetch worker profile
-    const { data, error } = await supabaseAdmin
-      .from("worker_profiles")
-      .select("*")
-      .eq("user_id", user_id)
-      .maybeSingle();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    // If no profile exists, return null profile with email
     return NextResponse.json({
-      profile: data || null,
-      email: userData.user.email
+      profile: profile || null,
+      email: userData.user.email,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -60,42 +43,27 @@ export async function PUT(req: Request) {
     const user_id = userData.user.id;
     const body = await req.json();
 
-    // Validate request body against schema (partial updates allowed)
     const validation = updateWorkerProfileSchema.safeParse(body);
     if (!validation.success) {
       const errors = validation.error.issues.map((err: ZodIssue) => ({
         field: err.path.join("."),
         message: err.message,
       }));
-      return NextResponse.json(
-        { error: "Validation failed", details: errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Validation failed", details: errors }, { status: 400 });
     }
 
-    // Map formattedAddress to formatted_address for database
-    const updateData: any = { ...validation.data };
-    if (updateData.formattedAddress !== undefined) {
-      updateData.formatted_address = updateData.formattedAddress;
-      delete updateData.formattedAddress;
-    }
+    // Map camelCase formattedAddress → snake_case formatted_address for DB
+    const { formattedAddress, ...rest } = validation.data as any;
+    const updateData: any = { ...rest };
+    if (formattedAddress !== undefined) updateData.formatted_address = formattedAddress;
 
-    // Update worker profile with validated data
-    const { data, error } = await supabaseAdmin
-      .from("worker_profiles")
-      .update(updateData)
-      .eq("user_id", user_id)
-      .select()
-      .single();
+    const [profile] = await db
+      .update(workerProfiles)
+      .set(updateData)
+      .where(eq(workerProfiles.user_id, user_id))
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({
-      message: "Worker profile updated",
-      profile: data
-    });
+    return NextResponse.json({ message: "Worker profile updated", profile });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

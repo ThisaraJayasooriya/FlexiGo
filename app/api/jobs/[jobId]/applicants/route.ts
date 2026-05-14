@@ -1,30 +1,22 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { jobs, applications, workerProfiles } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
-  const resolvedParams = await params;
-  const jobId = resolvedParams.jobId;
-  
+  const { jobId } = await params;
+
   if (!jobId) {
     return NextResponse.json({ error: "jobId required" }, { status: 400 });
   }
 
   try {
-
-    // -------- AUTH --------
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
     if (userErr || !userData.user) {
@@ -33,51 +25,48 @@ export async function GET(
 
     const businessId = userData.user.id;
 
-    // -------- VERIFY JOB OWNSERSHIP --------
-    const { data: job, error: jobErr } = await supabaseAdmin
-      .from("jobs")
-      .select("id")
-      .eq("id", jobId)
-      .eq("business_id", businessId)
-      .single();
+    // Verify job ownership
+    const [job] = await db
+      .select({ id: jobs.id })
+      .from(jobs)
+      .where(and(eq(jobs.id, jobId), eq(jobs.business_id, businessId)));
 
-    if (jobErr || !job) {
+    if (!job) {
       return NextResponse.json({ error: "Job not found or access denied" }, { status: 404 });
     }
 
-    // -------- FETCH APPLICATIONS --------
-    const { data: apps, error: appsErr } = await supabaseAdmin
-      .from("applications")
-      .select("id, status, applied_at, worker_id")
-      .eq("job_id", jobId)
-      .order("applied_at", { ascending: false });
+    // Fetch applications with worker profiles in one join query
+    const rows = await db
+      .select({
+        application_id: applications.id,
+        status: applications.status,
+        applied_at: applications.applied_at,
+        worker_id: applications.worker_id,
+        worker_name: workerProfiles.name,
+        worker_skills: workerProfiles.skills,
+        worker_availability: workerProfiles.availability,
+        worker_phone: workerProfiles.phone,
+      })
+      .from(applications)
+      .leftJoin(workerProfiles, eq(applications.worker_id, workerProfiles.user_id))
+      .where(eq(applications.job_id, jobId))
+      .orderBy(desc(applications.applied_at));
 
-    if (appsErr) {
-      return NextResponse.json({ error: appsErr.message }, { status: 500 });
-    }
-
-    // -------- FETCH ALL WORKER PROFILES IN ONE QUERY --------
-    const workerIds = apps.map(a => a.worker_id);
-
-    const { data: profiles, error: profileErr } = await supabaseAdmin
-      .from("worker_profiles")
-      .select("user_id, name, skills, availability, phone")
-      .in("user_id", workerIds);
-
-    if (profileErr) {
-      return NextResponse.json({ error: profileErr.message }, { status: 500 });
-    }
-
-    // Convert profile list → map for faster lookup
-    const profileMap = new Map(profiles.map(p => [p.user_id, p]));
-
-    // -------- MERGE APPLICATIONS + PROFILES --------
-    const applicants = apps.map(app => ({
-      application_id: app.id,
-      status: app.status,
-      applied_at: app.applied_at,
-      worker_id: app.worker_id,
-      worker: profileMap.get(app.worker_id) || null
+    // Shape into the expected response format
+    const applicants = rows.map((row) => ({
+      application_id: row.application_id,
+      status: row.status,
+      applied_at: row.applied_at,
+      worker_id: row.worker_id,
+      worker: row.worker_name
+        ? {
+            user_id: row.worker_id,
+            name: row.worker_name,
+            skills: row.worker_skills,
+            availability: row.worker_availability,
+            phone: row.worker_phone,
+          }
+        : null,
     }));
 
     return NextResponse.json({ applicants });

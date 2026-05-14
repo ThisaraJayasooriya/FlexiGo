@@ -1,35 +1,23 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
+import { workerProfiles, userRoles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import type { WorkerProfile } from "@/types/worker";
 import { createWorkerProfileSchema } from "@/lib/validators/workerSchemas";
 import type { ZodIssue } from "zod";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validate request body against schema
     const validation = createWorkerProfileSchema.safeParse(body);
     if (!validation.success) {
       const errors = validation.error.issues.map((err: ZodIssue) => ({
         field: err.path.join("."),
         message: err.message,
       }));
-      return NextResponse.json(
-        { error: "Validation failed", details: errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Validation failed", details: errors }, { status: 400 });
     }
 
     const authHeader = req.headers.get("Authorization") || "";
@@ -41,37 +29,44 @@ export async function POST(req: Request) {
     }
 
     const user_id = userData.user.id;
+    const d = validation.data;
 
-    // Upsert worker profile using admin client to bypass RLS
-    // Use separate columns for optimal distance calculation performance
-    const { data, error } = await supabaseAdmin
-      .from("worker_profiles")
-      .upsert({ 
-        user_id, 
-        name: validation.data.name,
-        phone: validation.data.phone,
-        skills: validation.data.skills,
-        availability: validation.data.availability,
-        city: validation.data.city,
-        district: validation.data.district,
-        latitude: validation.data.latitude,
-        longitude: validation.data.longitude,
-        formatted_address: validation.data.formattedAddress || null
-      }, { onConflict: "user_id" })
-      .select(); // returns array, do NOT use .single()
+    // Upsert worker profile using Drizzle
+    const [profile] = await db
+      .insert(workerProfiles)
+      .values({
+        user_id,
+        name: d.name,
+        phone: d.phone,
+        skills: d.skills,
+        availability: d.availability,
+        city: d.city,
+        district: d.district,
+        latitude: d.latitude,
+        longitude: d.longitude,
+        formatted_address: d.formattedAddress || null,
+      })
+      .onConflictDoUpdate({
+        target: workerProfiles.user_id,
+        set: {
+          name: d.name,
+          phone: d.phone,
+          skills: d.skills,
+          availability: d.availability,
+          city: d.city,
+          district: d.district,
+          latitude: d.latitude,
+          longitude: d.longitude,
+          formatted_address: d.formattedAddress || null,
+        },
+      })
+      .returning();
 
-    if (error) {
-      console.error("Database error:", error);
-      return NextResponse.json({ error: error.message, details: error }, { status: 400 });
-    }
-
-    const profile = data?.[0] || null;
-
-    // Update first_login_complete using admin client
-    await supabaseAdmin
-      .from("user_roles")
-      .update({ first_login_complete: true })
-      .eq("user_id", user_id);
+    // Mark onboarding complete using Drizzle
+    await db
+      .update(userRoles)
+      .set({ first_login_complete: true })
+      .where(eq(userRoles.user_id, user_id));
 
     return NextResponse.json({ message: "Worker profile completed", profile });
   } catch (err: any) {

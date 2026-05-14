@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/db";
+import { userRoles } from "@/db/schema";
 import { registerSchema } from "@/lib/validators/authSchemas";
-
-// Create admin client for bypassing RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 export async function POST(req: Request) {
   try {
@@ -35,26 +24,27 @@ export async function POST(req: Request) {
       email,
       password,
       options: {
-        data: { role }, // save role in auth.user_metadata
+        data: { role },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
       },
     });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    // Insert into user_roles table using admin client to bypass RLS
+    // Insert into user_roles using Drizzle
     if (data.user) {
-      const { error: roleError } = await supabaseAdmin
-        .from("user_roles")
-        .insert({
+      try {
+        await db.insert(userRoles).values({
           user_id: data.user.id,
-          role: role,
-          first_login_complete: false
+          role,
+          first_login_complete: false,
         });
-
-      if (roleError) {
+      } catch (roleError: any) {
         console.error("Failed to create user role:", roleError);
-        return NextResponse.json({ error: "Failed to create user role: " + roleError.message }, { status: 500 });
+        return NextResponse.json(
+          { error: "Failed to create user role: " + roleError.message },
+          { status: 500 }
+        );
       }
     }
 
