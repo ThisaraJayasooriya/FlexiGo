@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { db } from "@/lib/db";
-import { jobs } from "@/db/schema";
+import { jobs, userRoles } from "@/db/schema"; // userRoles needed to check verification_status
 import { createJobSchema } from "@/lib/validators/jobSchemas";
+import { eq } from "drizzle-orm";
 import type { ZodIssue } from "zod";
 
 export async function POST(req: Request) {
@@ -27,6 +28,23 @@ export async function POST(req: Request) {
     }
 
     const user_id = userData.user.id;
+
+    // --- Verification Guard ---
+    // Only businesses with verification_status = "approved" are allowed to post jobs.
+    // This is the server-side enforcement — the frontend also blocks the UI,
+    // but this ensures the rule cannot be bypassed via direct API calls.
+    const [roleData] = await db
+      .select({ verification_status: userRoles.verification_status })
+      .from(userRoles)
+      .where(eq(userRoles.user_id, user_id));
+
+    if (roleData?.verification_status !== "approved") {
+      return NextResponse.json(
+        { error: "Your business account must be verified by an admin before you can post jobs." },
+        { status: 403 }
+      );
+    }
+    // --- End Verification Guard ---
     const d = parsed.data;
 
     await db.insert(jobs).values({

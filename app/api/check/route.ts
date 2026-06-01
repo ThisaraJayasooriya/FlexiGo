@@ -15,7 +15,11 @@ export async function GET(req: Request) {
     }
 
     const [data] = await db
-      .select({ role: userRoles.role, first_login_complete: userRoles.first_login_complete })
+      .select({
+        role: userRoles.role,
+        first_login_complete: userRoles.first_login_complete,
+        verification_status: userRoles.verification_status, // needed by business dashboard + job-create guard
+      })
       .from(userRoles)
       .where(eq(userRoles.user_id, userData.user.id));
 

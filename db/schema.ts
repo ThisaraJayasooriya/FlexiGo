@@ -10,15 +10,22 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 
+
 // ---------------------------------------------------------------------------
 // user_roles
-// Stores the role (worker | business) and onboarding state for each user.
-// user_id references auth.users (Supabase-managed, no FK needed here).
+// Stores the role (worker | business | admin) and onboarding state for each user.
+// verification_status is only meaningful for role="business":
+//   "unverified" → just registered, hasn't submitted docs yet
+//   "pending"    → submitted docs, waiting for admin review
+//   "approved"   → admin approved — can post jobs
+//   "rejected"   → admin rejected — must re-submit
+//   null         → workers and admins (not applicable)
 // ---------------------------------------------------------------------------
 export const userRoles = pgTable("user_roles", {
-  user_id: uuid("user_id").primaryKey(),
-  role: text("role").notNull(),                          // "worker" | "business"
+  user_id:             uuid("user_id").primaryKey(),
+  role:                text("role").notNull(),             // "worker" | "business" | "admin"
   first_login_complete: boolean("first_login_complete").notNull().default(false),
+  verification_status: text("verification_status"),        // see above — null for workers/admins
 });
 
 // ---------------------------------------------------------------------------
@@ -92,9 +99,42 @@ export const applications = pgTable(
   (t) => [unique().on(t.job_id, t.worker_id)]
 );
 
+// ---------------------------------------------------------------------------
+// business_verifications
+// Each row = one verification submission by a business.
+// A business can have multiple rows (re-submissions after rejection).
+// The LATEST row (by submitted_at desc) is the active one.
+// ---------------------------------------------------------------------------
+export const businessVerifications = pgTable("business_verifications", {
+  id:                 uuid("id").primaryKey().defaultRandom(),
+  business_id:        uuid("business_id").notNull(),        // user_roles.user_id of the business
+
+  // --- Details entered by the business during submission ---
+  business_reg_type:  text("business_reg_type").notNull(),  // "pvt_ltd" | "sole_proprietorship"
+  br_number:          text("br_number").notNull(),          // Business Registration Number e.g. PV00234567
+  registered_name:    text("registered_name").notNull(),    // Legal name exactly as on certificate
+  registered_address: text("registered_address"),           // Address shown on certificate
+  owner_nic:          text("owner_nic"),                    // NIC — required for sole proprietorships
+
+  // --- Documents uploaded to Supabase Storage ---
+  certificate_url:    text("certificate_url").notNull(),    // BR certificate PDF or image (required)
+  additional_doc_url: text("additional_doc_url"),           // Form 01 / address proof (optional)
+
+  // --- Admin review fields ---
+  status:             text("status").notNull().default("pending"), // "pending" | "approved" | "rejected"
+  admin_note:         text("admin_note"),                   // Admin's note shown to the business on rejection
+  reviewed_by:        uuid("reviewed_by"),                  // user_id of the admin who reviewed
+  reviewed_at:        timestamp("reviewed_at", { withTimezone: true }),
+
+  submitted_at:       timestamp("submitted_at", { withTimezone: true }).defaultNow(),
+});
+
 // TypeScript types inferred from schema
-export type UserRole         = typeof userRoles.$inferSelect;
-export type WorkerProfile    = typeof workerProfiles.$inferSelect;
-export type BusinessProfile  = typeof businessProfiles.$inferSelect;
-export type Job              = typeof jobs.$inferSelect;
-export type Application      = typeof applications.$inferSelect;
+export type UserRole              = typeof userRoles.$inferSelect;
+export type WorkerProfile         = typeof workerProfiles.$inferSelect;
+export type BusinessProfile       = typeof businessProfiles.$inferSelect;
+export type Job                   = typeof jobs.$inferSelect;
+export type Application           = typeof applications.$inferSelect;
+export type BusinessVerification  = typeof businessVerifications.$inferSelect;
+
+

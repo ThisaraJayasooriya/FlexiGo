@@ -14,10 +14,12 @@ export const passwordSchema = z
   );
 
 // Registration schema
+// Note: "admin" is accepted by the schema but the UI never offers it as a choice.
+// Admin accounts are created manually via the Supabase dashboard + SQL.
 export const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: passwordSchema,
-  role: z.enum(["worker", "business"], {
+  role: z.enum(["worker", "business", "admin"], {
     message: "Role must be either 'worker' or 'business'",
   }),
 });

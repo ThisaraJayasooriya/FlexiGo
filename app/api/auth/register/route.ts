@@ -38,6 +38,9 @@ export async function POST(req: Request) {
           user_id: data.user.id,
           role,
           first_login_complete: false,
+          // Businesses start as "unverified" — must go through admin review before posting jobs.
+          // Workers and admins get null (not applicable to them).
+          verification_status: role === "business" ? "unverified" : null,
         });
       } catch (roleError: any) {
         console.error("Failed to create user role:", roleError);
