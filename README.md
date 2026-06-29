@@ -34,11 +34,20 @@ FlexiGo is a modern Progressive Web Application (PWA) that bridges the gap betwe
 ## Features
 
 ### For Businesses
-- **Create Job Postings** - Post flexible work opportunities with detailed requirements, location, pay rate, and required skills
-- **Manage Applications** - Review and manage worker applications efficiently, update acceptance/rejection status
+- **Business Verification** - Submit Business Registration (BR) documents for admin review before posting jobs
+- **Verification Status Tracking** - View pending, approved, or rejected status with admin feedback on rejection
+- **Create Job Postings** - Post flexible work opportunities (requires verified business status)
+- **Manage Applications** - Review and manage worker applications efficiently, update acceptance/rejection status (verified only)
 - **Business Profiles** - Create and manage comprehensive business profiles with logo, description, and social links
 - **Find Talent** - Access a pool of skilled part-time workers with matching skill sets
 - **Mobile-First** - Manage your workforce on the go
+
+### For Admins
+- **Admin Portal** - Dedicated dashboard at `/admin` with role-gated access (`role = "admin"`)
+- **System Overview** - Platform statistics: pending verifications, verified businesses, total workers, and jobs posted
+- **Verification Review Queue** - Review business submissions filtered by pending, approved, or rejected status
+- **Approve / Reject Businesses** - Review BR certificates and supporting documents, approve verified businesses, or reject with a mandatory reason note
+- **Responsive Admin UI** - Desktop sidebar navigation and mobile bottom nav for on-the-go moderation
 
 ### For Workers
 - **Browse Jobs** - Discover relevant part-time opportunities filtered by location and skills
@@ -54,7 +63,8 @@ FlexiGo is a modern Progressive Web Application (PWA) that bridges the gap betwe
 - **Inactivity Logout** - Automatic session expiry after 30 minutes of inactivity with a 5-minute warning
 - **Modern UI/UX** - Clean, intuitive interface with Tailwind CSS and Framer Motion animations
 - **Progressive Web App** - Installable on any device, works offline
-- **Role-Based Access** - Separate workflows for businesses and workers
+- **Role-Based Access** - Separate workflows for businesses, workers, and administrators
+- **Business Verification Gate** - My Jobs, Post Job, and Applications are locked until a business is admin-approved
 - **Skill Taxonomy** - Curated skills catalogue for structured job matching
 - **Geolocation Support** - Location-aware job and worker matching
 
@@ -195,7 +205,20 @@ FlexiGo/
 │   │   ├── schedule/             # Worker schedule endpoint
 │   │   │   └── worker/
 │   │   ├── skills/               # Skills catalogue endpoint
+│   │   ├── verification/         # Business verification endpoints
+│   │   │   ├── status/
+│   │   │   └── submit/
+│   │   ├── admin/                # Admin-only endpoints
+│   │   │   ├── stats/
+│   │   │   └── verifications/
+│   │   │       └── review/
 │   │   └── check/                # Auth check / health endpoint
+│   ├── admin/                    # Admin portal pages
+│   │   ├── dashboard/            # System overview & stats
+│   │   ├── verifications/        # Business verification review queue
+│   │   ├── layout.tsx            # Admin layout with role guard
+│   │   └── page.tsx              # Redirects to /admin/dashboard
+│   ├── verification/             # Business document submission page
 │   ├── components/               # Reusable React components
 │   │   ├── ui/                   # Base UI components (Button, Input, Toast)
 │   │   ├── AuthForm.tsx
@@ -222,12 +245,19 @@ FlexiGo/
 │   ├── supabase.ts               # Supabase client (auth only)
 │   ├── supabaseAdmin.ts          # Supabase admin client (service role)
 │   ├── api-client.ts             # Frontend API helper
+│   ├── adminGuard.ts             # Admin JWT + role verification helper
+│   ├── businessNav.tsx           # Shared business bottom-nav items
+│   ├── businessVerification.ts   # Server-side verification status lookup
+│   ├── businessVerification.shared.ts # Client-safe verification helpers
 │   ├── activity-tracker.ts       # Inactivity logout logic
+│   ├── hooks/
+│   │   └── useBusinessVerification.ts # Client hook for verification status
 │   ├── utils.ts                  # General helper functions
 │   ├── skills/                   # Skills data
 │   └── validators/               # Zod validation schemas
 │       ├── authSchemas.ts
 │       ├── jobSchemas.ts
+│       ├── verificationSchemas.ts
 │       └── workerSchemas.ts
 ├── types/                        # TypeScript type definitions
 │   ├── business.d.ts
@@ -258,8 +288,29 @@ Stores the role and onboarding state for each authenticated user.
 | Column | Type | Description |
 |---|---|---|
 | `user_id` | UUID (PK) | References Supabase `auth.users` |
-| `role` | text | `"worker"` or `"business"` |
+| `role` | text | `"worker"`, `"business"`, or `"admin"` |
 | `first_login_complete` | boolean | Whether the user has completed onboarding |
+| `verification_status` | text | Business only: `"unverified"` \| `"pending"` \| `"approved"` \| `"rejected"` (null for workers/admins) |
+
+#### `business_verifications`
+Each row is one verification submission by a business. Businesses can re-submit after rejection; the latest row (by `submitted_at`) is the active submission.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | UUID (PK) | Auto-generated |
+| `business_id` | UUID | Business user ID |
+| `business_reg_type` | text | `"pvt_ltd"` \| `"sole_proprietorship"` |
+| `br_number` | text | Business Registration Number |
+| `registered_name` | text | Legal name on certificate |
+| `registered_address` | text | Address on certificate (optional) |
+| `owner_nic` | text | Owner NIC (optional) |
+| `certificate_url` | text | BR certificate (PDF/image) in Supabase Storage |
+| `additional_doc_url` | text | Supporting document URL (optional) |
+| `status` | text | `"pending"` \| `"approved"` \| `"rejected"` |
+| `admin_note` | text | Rejection reason shown to the business |
+| `reviewed_by` | UUID | Admin user who reviewed |
+| `reviewed_at` | timestamptz | When the review was completed |
+| `submitted_at` | timestamptz | Auto-set on submission |
 
 #### `worker_profiles`
 Extended profile information for workers.
@@ -354,8 +405,21 @@ DATABASE_URL=postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/
 1. Create a new project on [Supabase](https://supabase.com)
 2. Enable **Email Auth** under Authentication → Providers
 3. Create the database tables listed in the [Database Schema](#-database-schema) section (or run migrations using `drizzle-kit`)
-4. Configure Row Level Security (RLS) policies as appropriate
-5. Copy the **Project URL**, **Anon Key**, **Service Role Key**, and **Direct Connection URI** into `.env.local`
+4. Create a **Storage bucket** named `verification-documents` for business BR certificate uploads
+5. Configure Row Level Security (RLS) policies as appropriate
+6. Copy the **Project URL**, **Anon Key**, **Service Role Key**, and **Direct Connection URI** into `.env.local`
+
+### Creating an Admin Account
+
+Admin users are assigned via the `user_roles` table (`role = "admin"`). After registering a normal account in Supabase Auth, set the role manually in the database:
+
+```sql
+INSERT INTO user_roles (user_id, role, first_login_complete, verification_status)
+VALUES ('<supabase-auth-user-uuid>', 'admin', true, null)
+ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+```
+
+Admins are redirected to `/admin/dashboard` on login. Non-admin users attempting to access `/admin/*` are redirected to the standard dashboard.
 
 ---
 
@@ -407,8 +471,8 @@ All API routes are Next.js Route Handlers under `app/api/`. Data operations use 
 | Method | Route | Description |
 |---|---|---|
 | `GET` | `/api/jobs/list` | List all open jobs |
-| `GET` | `/api/jobs/business` | Get jobs posted by the authenticated business |
-| `POST` | `/api/jobs/create` | Create a new job posting |
+| `GET` | `/api/jobs/business` | Get jobs posted by the authenticated business *(verified only)* |
+| `POST` | `/api/jobs/create` | Create a new job posting *(verified only)* |
 | `POST` | `/api/jobs/update-status` | Update a job's status |
 | `GET` | `/api/jobs/recommended` | Get skill & location based recommended jobs for worker |
 | `GET` | `/api/jobs/[jobId]/applicants` | Get all applicants for a specific job |
@@ -419,7 +483,7 @@ All API routes are Next.js Route Handlers under `app/api/`. Data operations use 
 |---|---|---|
 | `POST` | `/api/applications/apply` | Apply to a job |
 | `GET` | `/api/applications/worker` | Get all applications for the authenticated worker |
-| `GET` | `/api/applications/business` | Get all applications for the authenticated business |
+| `GET` | `/api/applications/business` | Get all applications for the authenticated business *(verified only)* |
 | `POST` | `/api/applications/update` | Update application status (accept / reject) |
 | `POST` | `/api/applications/withdraw` | Withdraw a submitted application |
 
@@ -428,6 +492,21 @@ All API routes are Next.js Route Handlers under `app/api/`. Data operations use 
 |---|---|---|
 | `GET` | `/api/schedule/worker` | Get accepted jobs for the worker's schedule view |
 | `GET` | `/api/skills` | Fetch the full skills catalogue |
+
+### Business Verification
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/verification/status` | Get current verification status and latest submission for the authenticated business |
+| `POST` | `/api/verification/submit` | Submit BR documents (multipart form: text fields + certificate file) |
+
+### Admin (requires `role = "admin"`)
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/admin/stats` | Platform overview: pending verifications, verified businesses, workers, jobs |
+| `GET` | `/api/admin/verifications?status=` | List verification submissions (`pending`, `approved`, or `rejected`) |
+| `POST` | `/api/admin/verifications/review` | Approve or reject a submission; updates `user_roles.verification_status` |
+
+> **Verification enforcement:** Job posting, My Jobs, Applications, and related business APIs return `403` unless `verification_status = "approved"`.
 
 ---
 
@@ -443,10 +522,35 @@ All API routes are Next.js Route Handlers under `app/api/`. Data operations use 
 
 ### Business
 - Register and set up a business profile (logo, description, type, social links)
+- Submit business verification documents (BR certificate, registration details) for admin review
+- Track verification status: unverified → pending → approved / rejected
+- **After approval only:** post jobs, view My Jobs, and manage applications
 - Post job opportunities with skill requirements and location details
 - View all applicants per job posting
 - Accept or reject applicants
 - Manage and update job statuses (open / closed / filled / cancelled)
+
+### Admin
+- Access the admin portal at `/admin/dashboard` (role-gated)
+- View platform statistics: pending verifications, verified businesses, total workers, jobs posted
+- Review business verification submissions in a pending / approved / rejected queue
+- Open submission details: registration info, certificate, and optional supporting documents
+- **Approve** a business — sets `verification_status` to `"approved"` and unlocks job posting
+- **Reject** a business — requires an admin note explaining why; business can re-submit from `/verification`
+
+### Business Verification Flow
+
+```mermaid
+flowchart LR
+  A[Business registers] --> B[unverified]
+  B --> C[Submits BR documents]
+  C --> D[pending]
+  D --> E{Admin review}
+  E -->|Approve| F[approved]
+  E -->|Reject + note| G[rejected]
+  G --> C
+  F --> H[Can post jobs & manage applications]
+```
 
 ---
 
