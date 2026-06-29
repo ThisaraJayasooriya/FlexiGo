@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getBusinessVerificationStatus } from "@/lib/businessVerification";
+import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +39,11 @@ export async function GET(
     }
 
     const business_id = userData.user.id;
+
+    const verificationStatus = await getBusinessVerificationStatus(business_id);
+    if (!isBusinessVerified(verificationStatus)) {
+      return NextResponse.json({ error: "Business verification required" }, { status: 403 });
+    }
 
     // Get the job and verify it belongs to this business
     const { data: job, error: jobError } = await supabaseAdmin

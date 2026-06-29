@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { db } from "@/lib/db";
 import { applications, jobs, workerProfiles } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { getBusinessVerificationStatus } from "@/lib/businessVerification";
+import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
 export async function GET(req: Request) {
   try {
@@ -15,6 +17,11 @@ export async function GET(req: Request) {
     }
 
     const business_id = userData.user.id;
+
+    const verificationStatus = await getBusinessVerificationStatus(business_id);
+    if (!isBusinessVerified(verificationStatus)) {
+      return NextResponse.json({ error: "Business verification required to access applications" }, { status: 403 });
+    }
 
     // Fetch all applications for this business's jobs via a join
     const rows = await db

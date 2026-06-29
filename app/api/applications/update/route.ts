@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { db } from "@/lib/db";
 import { applications, jobs } from "@/db/schema";
 import { eq, and, count } from "drizzle-orm";
+import { getBusinessVerificationStatus } from "@/lib/businessVerification";
+import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
 export async function PATCH(req: Request) {
   try {
@@ -15,6 +17,12 @@ export async function PATCH(req: Request) {
     }
 
     const business_id = userData.user.id;
+
+    const verificationStatus = await getBusinessVerificationStatus(business_id);
+    if (!isBusinessVerified(verificationStatus)) {
+      return NextResponse.json({ error: "Business verification required" }, { status: 403 });
+    }
+
     const { applicationId, status } = await req.json();
 
     if (!applicationId || !status) {

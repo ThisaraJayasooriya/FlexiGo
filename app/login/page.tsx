@@ -43,6 +43,12 @@ export default function LoginPage() {
         if (checkRes.ok) {
           const userData = await checkRes.json();
           
+          // Direct admin users to admin dashboard immediately
+          if (userData.role === "admin") {
+            router.push("/admin/dashboard");
+            return;
+          }
+          
           // If first login not complete, redirect to profile creation
           if (!userData.first_login_complete) {
             if (userData.role === "worker") {

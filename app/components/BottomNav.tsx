@@ -8,6 +8,7 @@ export interface NavItem {
   activeIcon: React.ReactNode;
   href: string;
   elevated?: boolean;
+  disabled?: boolean;
 }
 
 interface BottomNavProps {
@@ -20,6 +21,11 @@ export default function BottomNav({ items, activeTab, onTabChange }: BottomNavPr
   const router = useRouter();
 
   const handleTabClick = (item: NavItem) => {
+    if (item.disabled) {
+      router.push("/verification");
+      return;
+    }
+
     if (onTabChange) {
       onTabChange(item.id);
     }
@@ -40,7 +46,8 @@ export default function BottomNav({ items, activeTab, onTabChange }: BottomNavPr
                 <button
                   key={item.id}
                   onClick={() => handleTabClick(item)}
-                  className="flex flex-col items-center gap-1 -mt-6"
+                  disabled={item.disabled}
+                  className={`flex flex-col items-center gap-1 -mt-6 ${item.disabled ? "opacity-40 cursor-not-allowed" : ""}`}
                 >
                   <div className="w-14 h-14 rounded-2xl bg-linear-to-r from-[#3F72AF] to-[#112D4E] flex items-center justify-center shadow-xl hover:shadow-2xl transition-all active:scale-95">
                     <div className="text-white">
@@ -56,8 +63,13 @@ export default function BottomNav({ items, activeTab, onTabChange }: BottomNavPr
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item)}
+                disabled={item.disabled}
                 className={`flex flex-col items-center gap-1 py-2 px-3 transition-colors ${
-                  isActive ? "text-[#3F72AF]" : "text-gray-500 hover:text-[#3F72AF]"
+                  item.disabled
+                    ? "text-gray-300 cursor-not-allowed opacity-50"
+                    : isActive
+                      ? "text-[#3F72AF]"
+                      : "text-gray-500 hover:text-[#3F72AF]"
                 }`}
               >
                 <div className="text-2xl">

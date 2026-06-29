@@ -7,23 +7,31 @@ import Toast from "../components/ui/Toast";
 import LoadingWave from "../components/ui/LoadingWave";
 import BottomNav, { NavItem } from "../components/BottomNav";
 import { apiClient } from "@/lib/api-client";
+import { getBusinessNavItems } from "@/lib/businessNav";
+import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
 export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch user role
     apiClient.get("/api/check")
       .then((data) => {
+        if (data.role === "admin") {
+          router.push("/admin/dashboard");
+          return;
+        }
         setUserRole(data.role);
         setUserName(data.email?.split("@")[0] || "User");
+        setVerificationStatus(data.verification_status || "unverified");
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -44,7 +52,7 @@ export default function Dashboard() {
   }
 
   if (userRole === "business") {
-    return <BusinessDashboard userName={userName} onLogout={handleLogout} />;
+    return <BusinessDashboard userName={userName} onLogout={handleLogout} verificationStatus={verificationStatus} />;
   }
 
   if (userRole === "worker") {
@@ -55,7 +63,7 @@ export default function Dashboard() {
 }
 
 // Business Dashboard Component
-function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout: () => void }) {
+function BusinessDashboard({ userName, onLogout, verificationStatus }: { userName: string; onLogout: () => void; verificationStatus: string | null }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [profileName, setProfileName] = useState("");
@@ -77,43 +85,8 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
     fetchProfile();
   }, [userName]);
 
-  const businessNavItems: NavItem[] = [
-    {
-      id: "home",
-      label: "Home",
-      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-      href: "/dashboard"
-    },
-    {
-      id: "jobs",
-      label: "My Jobs",
-      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-      href: "/jobs/business"
-    },
-    {
-      id: "create",
-      label: "Post Job",
-      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
-      activeIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>,
-      href: "/jobs/create"
-    },
-    {
-      id: "applications",
-      label: "Applications",
-      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-      href: "/applications/business"
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-      activeIcon: <svg className="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-      href: "/profile/business"
-    }
-  ];
+  const isVerified = isBusinessVerified(verificationStatus);
+  const businessNavItems = getBusinessNavItems(isVerified);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 font-sans antialiased">
@@ -154,14 +127,75 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
             </div>
             
             <button 
-               onClick={() => router.push("/jobs/create")} 
-               className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl font-bold text-xs hover:bg-blue-50 transition-colors shadow-lg shadow-white/10 active:scale-95"
+               onClick={() => {
+                 if (verificationStatus === "approved") {
+                   router.push("/jobs/create");
+                 } else {
+                   router.push("/verification");
+                 }
+               }} 
+               className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl font-bold text-xs hover:bg-blue-50 transition-colors shadow-lg shadow-white/10 active:scale-95 mt-4"
             >
                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-               <span>Post New Job</span>
+               <span>{verificationStatus === "approved" ? "Post New Job" : "Verify to Post Jobs"}</span>
             </button>
           </div>
         </div>
+
+        {/* Verification Status Banner */}
+        {verificationStatus !== "approved" && (
+          <div className={`p-4 rounded-2xl flex items-start gap-3 shadow-sm border ${
+            verificationStatus === "pending" 
+              ? "bg-amber-50 border-amber-200 text-amber-800" 
+              : verificationStatus === "rejected"
+                ? "bg-red-50 border-red-200 text-red-800"
+                : "bg-blue-50 border-blue-200 text-blue-800"
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              verificationStatus === "pending" 
+                ? "bg-amber-100 text-amber-600" 
+                : verificationStatus === "rejected"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-blue-100 text-blue-600"
+            }`}>
+              {verificationStatus === "pending" ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              ) : verificationStatus === "rejected" ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-bold mb-1">
+                {verificationStatus === "pending" 
+                  ? "Verification Pending" 
+                  : verificationStatus === "rejected"
+                    ? "Verification Rejected"
+                    : "Account Verification Required"}
+              </h4>
+              <p className="text-xs opacity-90 leading-relaxed mb-3">
+                {verificationStatus === "pending" 
+                  ? "Your documents are currently under review by our admin team. You'll be notified once approved." 
+                  : verificationStatus === "rejected"
+                    ? "Your previous verification attempt was rejected. Please review our requirements and try again."
+                    : "To maintain platform quality, all businesses must be verified before posting jobs."}
+              </p>
+              {verificationStatus !== "pending" && (
+                <button 
+                  onClick={() => router.push("/verification")}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    verificationStatus === "rejected"
+                      ? "bg-red-100 hover:bg-red-200 text-red-700"
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                  }`}
+                >
+                  {verificationStatus === "rejected" ? "Re-submit Documents" : "Start Verification"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 gap-3">
@@ -190,8 +224,11 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
         <div className="grid grid-cols-2 gap-4">
            {/* Quick Action: My Jobs */}
            <button 
-             onClick={() => router.push("/jobs/business")}
-             className="group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all active:scale-[0.98]"
+             onClick={() => router.push(isVerified ? "/jobs/business" : "/verification")}
+             disabled={!isVerified}
+             className={`group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all ${
+               isVerified ? "active:scale-[0.98]" : "opacity-50 cursor-not-allowed"
+             }`}
            >
               <div className="absolute top-0 right-0 -mr-3 -mt-3 w-16 h-16 bg-blue-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
               <div className="relative z-10 flex flex-col items-start">
@@ -205,8 +242,11 @@ function BusinessDashboard({ userName, onLogout }: { userName: string; onLogout:
 
            {/* Quick Action: Applications */}
            <button 
-             onClick={() => router.push("/applications/business")}
-             className="group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all active:scale-[0.98]"
+             onClick={() => router.push(isVerified ? "/applications/business" : "/verification")}
+             disabled={!isVerified}
+             className={`group relative bg-white overflow-hidden rounded-2xl p-5 shadow-sm border border-slate-100 transition-all ${
+               isVerified ? "active:scale-[0.98]" : "opacity-50 cursor-not-allowed"
+             }`}
            >
               <div className="absolute top-0 right-0 -mr-3 -mt-3 w-16 h-16 bg-purple-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
               <div className="relative z-10 flex flex-col items-start">
