@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * POST /api/auth/forgot-password
+ * Sends a password-reset email. Body: { email }
+ */
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();

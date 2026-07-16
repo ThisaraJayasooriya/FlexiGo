@@ -1,6 +1,3 @@
-// lib/activity-tracker.ts
-// Simple inactivity logout - logs out user after 30 minutes of no activity
-
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 const WARNING_TIME = 5 * 60 * 1000; // Show warning 5 min before logout
 const ACTIVITY_KEY = 'lastActivityTime';
@@ -83,6 +80,11 @@ function handleActivity() {
   startTimers();
 }
 
+/**
+ * Starts inactivity tracking for the logged-in user.
+ * Warns after 25 minutes and logs out after 30 minutes of no activity.
+ * @returns Cleanup function that removes listeners and clears timers
+ */
 export function initInactivityTracker(customCallbacks?: Partial<InactivityCallbacks>) {
   if (typeof window === 'undefined') return () => {};
   
@@ -135,10 +137,12 @@ export function initInactivityTracker(customCallbacks?: Partial<InactivityCallba
   };
 }
 
+/** Resets the inactivity countdown after user activity. */
 export function resetInactivityTimer() {
   handleActivity();
 }
 
+/** Stops inactivity timers without removing the module state permanently. */
 export function stopInactivityTracker() {
   isInitialized = false;
   clearTimers();

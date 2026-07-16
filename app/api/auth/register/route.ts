@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 import { userRoles } from "@/db/schema";
 import { registerSchema } from "@/lib/validators/authSchemas";
 
+/**
+ * POST /api/auth/register
+ * Creates a Supabase user and inserts a `user_roles` row.
+ * Body: { email, password, role: "worker" | "business" }
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();

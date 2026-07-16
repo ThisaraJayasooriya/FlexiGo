@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { jobs, applications, businessProfiles } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
+/**
+ * GET /api/jobs/list
+ * Lists open jobs for workers, including whether the current worker already applied.
+ */
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

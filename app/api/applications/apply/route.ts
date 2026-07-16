@@ -7,6 +7,10 @@ import { z } from "zod";
 
 const applySchema = z.object({ job_id: z.string().uuid() });
 
+/**
+ * POST /api/applications/apply
+ * Worker applies to a job. Body: { job_id }. Rejects own-job and duplicate applies.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();

@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { applications } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
+/**
+ * PATCH /api/applications/withdraw
+ * Worker withdraws their own pending application. Body: { applicationId }
+ */
 export async function PATCH(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

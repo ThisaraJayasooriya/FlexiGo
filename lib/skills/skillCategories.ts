@@ -88,10 +88,10 @@ export const ALL_VALID_SKILLS: string[] = SKILL_CATEGORIES.flatMap(
   (category) => category.skills
 );
 
-// Maximum allowed skills per worker
+/** Maximum number of skills a worker may select. */
 export const MAX_SKILLS = 10;
 
-// Helper function to get category for a skill
+/** Returns the category name for a skill, or null if the skill is not in the catalog. */
 export function getCategoryForSkill(skillName: string): string | null {
   for (const category of SKILL_CATEGORIES) {
     if (category.skills.includes(skillName)) {
@@ -101,7 +101,10 @@ export function getCategoryForSkill(skillName: string): string | null {
   return null;
 }
 
-// Helper function to validate skill array
+/**
+ * Validates a skills array against the predefined catalog.
+ * Checks count limits, duplicates, and unknown skill names.
+ */
 export function validateSkills(skills: string[]): {
   isValid: boolean;
   errors: string[];
@@ -139,7 +142,7 @@ export function validateSkills(skills: string[]): {
   };
 }
 
-// Helper function to convert skills to structured format with categories
+/** Maps skill names to `{ name, category }` objects for storage/display. */
 export function enrichSkillsWithCategories(skills: string[]): Skill[] {
   return skills.map((skillName) => ({
     name: skillName,

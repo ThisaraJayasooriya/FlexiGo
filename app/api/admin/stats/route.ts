@@ -1,24 +1,13 @@
-// app/api/admin/stats/route.ts
-//
-// PURPOSE: Returns dashboard statistics for the admin home page.
-//   Shows counts across the key tables so the admin gets a quick overview
-//   of the platform state without scrolling through individual records.
-//
-// RETURNS:
-//   {
-//     pending_verifications: number,  // verifications awaiting review
-//     approved_businesses: number,    // successfully verified businesses
-//     rejected_verifications: number, // rejected submissions
-//     total_workers: number,          // all registered worker accounts
-//     total_jobs: number              // all job postings ever created
-//   }
-
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { businessVerifications, userRoles, jobs } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { verifyAdmin } from "@/lib/adminGuard";
 
+/**
+ * GET /api/admin/stats
+ * Admin dashboard counts: verifications, workers, and jobs.
+ */
 export async function GET(req: Request) {
   try {
     // Verify admin access

@@ -6,6 +6,10 @@ import { eq } from "drizzle-orm";
 import { updateWorkerProfileSchema } from "@/lib/validators/workerSchemas";
 import type { ZodIssue } from "zod";
 
+/**
+ * GET /api/workers/profile
+ * Returns the authenticated worker profile.
+ */
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";
@@ -30,6 +34,10 @@ export async function GET(req: Request) {
   }
 }
 
+/**
+ * PUT /api/workers/profile
+ * Updates the authenticated worker profile. Body validated by updateWorkerProfileSchema.
+ */
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";

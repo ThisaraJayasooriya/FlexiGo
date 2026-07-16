@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { applications, jobs, businessProfiles } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
+/**
+ * GET /api/applications/worker
+ * Lists the authenticated worker's applications with job and business details.
+ */
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

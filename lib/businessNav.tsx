@@ -40,6 +40,10 @@ const baseBusinessNavItems: NavItem[] = [
   },
 ];
 
+/**
+ * Builds the business bottom-nav items.
+ * Unverified businesses get Jobs / Post Job / Applications disabled.
+ */
 export function getBusinessNavItems(isVerified: boolean): NavItem[] {
   if (isVerified) {
     return baseBusinessNavItems;

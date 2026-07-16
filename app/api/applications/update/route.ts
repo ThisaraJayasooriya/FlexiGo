@@ -6,6 +6,11 @@ import { eq, and, count } from "drizzle-orm";
 import { getBusinessVerificationStatus } from "@/lib/businessVerification";
 import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
+/**
+ * PATCH /api/applications/update
+ * Business accepts or rejects an applicant. Enforces staffing limits on accept.
+ * Body: { application_id, status: "accepted" | "rejected" }
+ */
 export async function PATCH(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

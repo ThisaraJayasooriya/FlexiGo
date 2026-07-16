@@ -44,7 +44,10 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
-// Helper function to validate password strength
+/**
+ * Checks password strength rules used by the register/reset UI.
+ * Returns a list of unmet requirements when invalid.
+ */
 export function validatePasswordStrength(password: string): {
   isValid: boolean;
   errors: string[];

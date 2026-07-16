@@ -9,6 +9,10 @@ interface UseBusinessVerificationOptions {
   redirectIfUnverified?: boolean;
 }
 
+/**
+ * Loads the current business verification status via `/api/check`.
+ * Optionally redirects to `/verification` when the business is not approved.
+ */
 export function useBusinessVerification(options: UseBusinessVerificationOptions = {}) {
   const router = useRouter();
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);

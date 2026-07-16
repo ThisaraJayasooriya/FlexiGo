@@ -1,23 +1,13 @@
-// app/api/verification/status/route.ts
-//
-// PURPOSE: Returns the current verification status for the authenticated business.
-//   The frontend dashboard calls this to:
-//   - Show the correct banner (unverified / pending / approved / rejected)
-//   - Display the admin_note when rejected so the business knows why
-//   - Show summary of the latest submitted documents
-//
-// RETURNS:
-//   {
-//     verification_status: "unverified" | "pending" | "approved" | "rejected" | null,
-//     latest_submission: { ... } | null   // the most recent business_verifications row
-//   }
-
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { db } from "@/lib/db";
 import { businessVerifications, userRoles } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
+/**
+ * GET /api/verification/status
+ * Returns the business verification_status and latest submission (for banners/notes).
+ */
 export async function GET(req: Request) {
   try {
     // Authenticate

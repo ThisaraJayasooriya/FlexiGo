@@ -11,6 +11,10 @@ const supabaseAdmin = createClient(
   }
 );
 
+/**
+ * GET /api/jobs/[jobId]/acceptance-status
+ * Returns accepted/pending/remaining staffing counts for a business-owned job.
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ jobId: string }> }

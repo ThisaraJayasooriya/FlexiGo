@@ -6,6 +6,10 @@ import { eq, and, desc } from "drizzle-orm";
 import { getBusinessVerificationStatus } from "@/lib/businessVerification";
 import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
+/**
+ * GET /api/jobs/[jobId]/applicants
+ * Lists applicants for a job owned by the verified business.
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ jobId: string }> }

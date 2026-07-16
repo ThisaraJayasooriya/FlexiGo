@@ -7,6 +7,10 @@ import type { WorkerProfile } from "@/types/worker";
 import { createWorkerProfileSchema } from "@/lib/validators/workerSchemas";
 import type { ZodIssue } from "zod";
 
+/**
+ * POST /api/workers/profile/create
+ * Creates the initial worker profile (skills, location, availability).
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();

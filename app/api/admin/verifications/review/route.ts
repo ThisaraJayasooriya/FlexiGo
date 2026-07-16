@@ -1,27 +1,14 @@
-// app/api/admin/verifications/review/route.ts
-//
-// PURPOSE: Admin approves or rejects a verification submission.
-//
-// PROCESS:
-//  1. Verify admin identity
-//  2. Validate request body
-//  3. Update business_verifications row (status, admin_note, reviewed_by, reviewed_at)
-//  4. Update user_roles.verification_status for the business to match the decision
-//     This is the single source of truth the frontend and job-create guard use.
-//
-// REQUEST body (JSON):
-//   {
-//     "verification_id": "uuid",
-//     "decision":        "approved" | "rejected",
-//     "admin_note":      "Optional note visible to the business"
-//   }
-
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { businessVerifications, userRoles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyAdmin } from "@/lib/adminGuard";
 
+/**
+ * POST /api/admin/verifications/review
+ * Approves or rejects a verification and syncs `user_roles.verification_status`.
+ * Body: { verification_id, decision: "approved" | "rejected", admin_note? }
+ */
 export async function POST(req: Request) {
   try {
     // Step 1: Verify admin

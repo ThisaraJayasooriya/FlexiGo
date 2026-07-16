@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { businessProfiles, userRoles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * POST /api/businesses/profile/create
+ * Creates the initial business profile and marks first_login_complete.
+ */
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";

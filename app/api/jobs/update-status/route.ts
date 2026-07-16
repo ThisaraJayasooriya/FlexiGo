@@ -6,6 +6,10 @@ import { eq, and } from "drizzle-orm";
 
 type JobStatus = "open" | "closed" | "cancelled" | "filled";
 
+/**
+ * PATCH /api/jobs/update-status
+ * Business updates one of their jobs' status. Body: { job_id, status }
+ */
 export async function PATCH(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

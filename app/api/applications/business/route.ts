@@ -6,6 +6,10 @@ import { eq, desc } from "drizzle-orm";
 import { getBusinessVerificationStatus } from "@/lib/businessVerification";
 import { isBusinessVerified } from "@/lib/businessVerification.shared";
 
+/**
+ * GET /api/applications/business
+ * Lists applications for the verified business's jobs (requires approved verification).
+ */
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

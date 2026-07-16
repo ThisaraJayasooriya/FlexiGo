@@ -11,6 +11,10 @@ function isWeekend(dateString: string): boolean {
   return day === 0 || day === 6;
 }
 
+/**
+ * GET /api/jobs/recommended
+ * Ranks open jobs for the worker by skill match, distance (≤25 km), and availability.
+ */
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

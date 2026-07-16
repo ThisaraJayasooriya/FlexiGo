@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { businessProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * GET /api/businesses/profile
+ * Returns the authenticated business profile.
+ */
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";
@@ -25,6 +29,10 @@ export async function GET(req: Request) {
   }
 }
 
+/**
+ * PUT /api/businesses/profile
+ * Updates the authenticated business profile fields.
+ */
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";

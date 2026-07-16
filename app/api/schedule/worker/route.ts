@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { applications, jobs, businessProfiles } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 
+/**
+ * GET /api/schedule/worker
+ * Returns the worker's accepted jobs ordered by date (upcoming schedule).
+ */
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");

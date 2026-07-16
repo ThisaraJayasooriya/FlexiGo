@@ -1,25 +1,3 @@
-// app/api/verification/submit/route.ts
-//
-// PURPOSE: Business submits their verification documents here.
-//
-// PROCESS:
-//  1. Authenticate the user (must be a business account)
-//  2. Validate text fields with Zod
-//  3. Upload the certificate PDF/image to Supabase Storage (bucket: "verification-documents")
-//  4. Optionally upload a second document
-//  5. Insert a new row into business_verifications (status = "pending")
-//  6. Update user_roles.verification_status to "pending"
-//  7. Respond with success
-//
-// REQUEST: multipart/form-data with fields:
-//   - business_reg_type  (string)
-//   - br_number          (string)
-//   - registered_name    (string)
-//   - registered_address (string, optional)
-//   - owner_nic          (string, optional)
-//   - certificate        (File, required — PDF or image)
-//   - additional_doc     (File, optional)
-
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { db } from "@/lib/db";
@@ -27,6 +5,10 @@ import { businessVerifications, userRoles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verificationSubmitSchema } from "@/lib/validators/verificationSchemas";
 
+/**
+ * POST /api/verification/submit
+ * Business uploads BR documents (multipart/form-data) and sets status to pending.
+ */
 export async function POST(req: Request) {
   try {
     // --- Step 1: Authenticate ---

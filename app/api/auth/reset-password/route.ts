@@ -5,6 +5,11 @@ import { passwordSchema } from "@/lib/validators/authSchemas";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+/**
+ * POST /api/auth/reset-password
+ * Sets a new password using the recovery access token from the reset email link.
+ * Body: { access_token, password }
+ */
 export async function POST(req: Request) {
   try {
     const { password, access_token } = await req.json();

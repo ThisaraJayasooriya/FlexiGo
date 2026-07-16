@@ -1,19 +1,13 @@
-// app/api/admin/verifications/route.ts
-//
-// PURPOSE: Admin fetches the list of business verification submissions.
-//   Supports filtering by status: ?status=pending (default) | approved | rejected
-//
-// For each submission we JOIN with business_profiles to show the company name + logo
-// so the admin has context without needing to look up separately.
-//
-// RETURNS: array of verification rows enriched with company_name and logo_url
-
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { businessVerifications, businessProfiles } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { verifyAdmin } from "@/lib/adminGuard";
 
+/**
+ * GET /api/admin/verifications
+ * Lists verification submissions. Query: ?status=pending|approved|rejected (default pending).
+ */
 export async function GET(req: Request) {
   try {
     // Step 1: Confirm caller is an admin (uses shared guard)

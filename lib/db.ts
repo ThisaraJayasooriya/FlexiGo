@@ -16,6 +16,7 @@ function createDb() {
   return drizzle(client, { schema });
 }
 
+/** Shared Drizzle ORM client for all server-side database queries. */
 export const db = globalForDb.db ?? createDb();
 
 if (process.env.NODE_ENV !== "production") {

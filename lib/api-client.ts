@@ -1,10 +1,10 @@
-// lib/api-client.ts
-// Centralized API client with automatic token expiration handling
-
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
 }
 
+/**
+ * Frontend HTTP client that attaches the Bearer token and redirects to login on 401.
+ */
 class ApiClient {
   private baseUrl: string;
 
@@ -99,5 +99,5 @@ class ApiClient {
   }
 }
 
-// Export singleton instance
+/** Shared API client instance for authenticated frontend requests. */
 export const apiClient = new ApiClient();

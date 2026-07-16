@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { userRoles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * GET /api/check
+ * Returns the authenticated user's role, first_login_complete, and verification_status.
+ */
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization") || "";

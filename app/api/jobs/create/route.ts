@@ -6,6 +6,10 @@ import { createJobSchema } from "@/lib/validators/jobSchemas";
 import { eq } from "drizzle-orm";
 import type { ZodIssue } from "zod";
 
+/**
+ * POST /api/jobs/create
+ * Creates a job for an approved business. Rejects unverified businesses.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();

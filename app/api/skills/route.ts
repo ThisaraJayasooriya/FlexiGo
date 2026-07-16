@@ -1,10 +1,9 @@
-// app/api/skills/route.ts
 import { NextResponse } from "next/server";
 import { SKILL_CATEGORIES, validateSkills } from "@/lib/skills/skillCategories";
 
 /**
  * GET /api/skills
- * Returns all skill categories and skills for frontend selection
+ * Returns the full skill catalog grouped by category.
  */
 export async function GET() {
   try {
@@ -21,9 +20,8 @@ export async function GET() {
 }
 
 /**
- * POST /api/skills/validate
- * Validates an array of skills against the predefined list
- * Body: { skills: string[] }
+ * POST /api/skills
+ * Validates a skills array against the catalog. Body: { skills: string[] }
  */
 export async function POST(req: Request) {
   try {
